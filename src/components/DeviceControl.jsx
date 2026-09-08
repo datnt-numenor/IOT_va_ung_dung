@@ -24,6 +24,7 @@ function DeviceControl({ name, status, onToggle, icon }) {
         className={`toggle-switch ${isOn ? "on" : ""}`}
         onClick={onToggle}
         disabled={isLoading}
+        aria-label={`${isOn ? "Tắt" : "Bật"} ${name}`}
       >
         <span className="toggle-thumb" />
       </button>

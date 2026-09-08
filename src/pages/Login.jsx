@@ -19,33 +19,59 @@ function Login() {
 
   return (
     <div className="login-page">
+      <section className="login-brand-panel" aria-label="Giới thiệu IoT Room">
+        <div className="login-brand">
+          <strong>IoT ROOM</strong>
+          <span>SMART MONITORING SYSTEM</span>
+        </div>
+
+        <div className="login-hero-copy">
+          <h1>Giám sát phòng học thông minh và trực quan</h1>
+          <p>
+            Theo dõi nhiệt độ, độ ẩm, ánh sáng và điều khiển thiết bị qua
+            ESP32 theo thời gian thực.
+          </p>
+        </div>
+
+        <span className="login-decoration decoration-large" />
+        <span className="login-decoration decoration-medium" />
+        <span className="login-decoration decoration-small" />
+      </section>
+
       <form className="login-form" onSubmit={handleSubmit}>
-        <h1>IoT Smart Room</h1>
-        <p>Sign in to continue</p>
+        <h1>Đăng nhập</h1>
+        <p>Sử dụng tài khoản hệ thống IoT Room</p>
 
         <div className="form-group">
-          <label>Username</label>
+          <label htmlFor="username">TÊN ĐĂNG NHẬP</label>
 
           <input
+            id="username"
             type="text"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            placeholder="Enter username"
+            placeholder="Nhập tên đăng nhập"
           />
         </div>
 
         <div className="form-group">
-          <label>Password</label>
+          <label htmlFor="password">MẬT KHẨU</label>
 
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter password"
+            placeholder="Nhập mật khẩu"
           />
         </div>
 
-        <button type="submit">Login</button>
+        <label className="remember-login">
+          <input type="checkbox" defaultChecked />
+          <span>Ghi nhớ đăng nhập</span>
+        </label>
+
+        <button type="submit">Đăng nhập</button>
       </form>
     </div>
   );
