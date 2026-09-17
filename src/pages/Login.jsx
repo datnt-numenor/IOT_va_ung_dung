@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   function handleSubmit(event) {
     event.preventDefault();
 
     if (username === "admin" && password === "123456") {
-      navigate("/dashboard");
+      login({ remember });
+      navigate("/dashboard", { replace: true });
     } else {
       alert("Invalid username or password");
     }
@@ -67,7 +71,11 @@ function Login() {
         </div>
 
         <label className="remember-login">
-          <input type="checkbox" defaultChecked />
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(event) => setRemember(event.target.checked)}
+          />
           <span>Ghi nhớ đăng nhập</span>
         </label>
 

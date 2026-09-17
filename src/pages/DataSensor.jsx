@@ -8,11 +8,18 @@ const sensorLabels = {
   Light: "Ánh sáng",
 };
 
+const sensorByField = {
+  temperature: "Temperature",
+  humidity: "Humidity",
+  light: "Light",
+};
+
 function DataSensor() {
   const [search, setSearch] = useState("");
   const [searchField, setSearchField] = useState("all");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedSearchField, setAppliedSearchField] = useState("all");
+  const [searchMode, setSearchMode] = useState("all");
 
   const [sortKey, setSortKey] = useState("id");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -23,11 +30,11 @@ function DataSensor() {
   const filteredData = sensorData.filter((item) => {
     const keyword = appliedSearch.trim().toLowerCase();
 
-    if (!keyword) {
-      return true;
-    }
-
     if (appliedSearchField === "all") {
+      if (!keyword) {
+        return true;
+      }
+
       return (
         item.sensor.toLowerCase().includes(keyword) ||
         (sensorLabels[item.sensor] || "").toLowerCase().includes(keyword) ||
@@ -38,21 +45,11 @@ function DataSensor() {
     }
 
     if (appliedSearchField === "time") {
-      return item.time.toLowerCase().includes(keyword);
+      return !keyword || item.time.toLowerCase().includes(keyword);
     }
 
-    if (appliedSearchField === "temperature") {
-      return (
-        item.sensor === "Temperature" && String(item.value).includes(keyword)
-      );
-    }
-
-    if (appliedSearchField === "humidity") {
-      return item.sensor === "Humidity" && String(item.value).includes(keyword);
-    }
-
-    if (appliedSearchField === "light") {
-      return item.sensor === "Light" && String(item.value).includes(keyword);
+    if (sensorByField[appliedSearchField]) {
+      return item.sensor === sensorByField[appliedSearchField];
     }
 
     return true;
@@ -94,8 +91,25 @@ function DataSensor() {
 
   function handleSearch(event) {
     event.preventDefault();
-    setAppliedSearch(search);
-    setAppliedSearchField(searchField);
+
+    const keyword = search.trim();
+
+    if (searchMode === "field" && searchField !== "all") {
+      setAppliedSearch("");
+      setAppliedSearchField(searchField);
+      setSearch("");
+    } else if (keyword) {
+      setAppliedSearch(keyword);
+      setAppliedSearchField("all");
+      setSearchField("all");
+      setSearchMode("keyword");
+    } else {
+      setAppliedSearch("");
+      setAppliedSearchField("all");
+      setSearchField("all");
+      setSearchMode("all");
+    }
+
     setCurrentPage(1);
   }
 
@@ -126,12 +140,20 @@ function DataSensor() {
             type="text"
             placeholder={searchField === "time" ? "YYYY-MM-DD HH:mm:ss" : "Nhập giá trị cần tìm..."}
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearch(value);
+              setSearchMode(value.trim() ? "keyword" : searchField === "all" ? "all" : "field");
+            }}
           />
 
           <select
             value={searchField}
-            onChange={(event) => setSearchField(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearchField(value);
+              setSearchMode(value === "all" ? (search.trim() ? "keyword" : "all") : "field");
+            }}
           >
             <option value="all">Tất cả</option>
             <option value="time">Thời gian</option>
