@@ -1,16 +1,65 @@
-# React + Vite
+# IoT Smart Room
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Hệ thống giám sát dữ liệu cảm biến và điều khiển thiết bị cho phòng học thông minh.
 
-Currently, two official plugins are available:
+## Cấu trúc dự án
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+iot-smart-room/
+├── frontend/   # React + Vite
+└── backend/    # Node.js + Express + MySQL
+```
 
-## React Compiler
+Frontend và backend là hai ứng dụng npm độc lập. Hãy chạy lệnh trong đúng thư mục tương ứng.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Yêu cầu
 
-## Expanding the Oxlint configuration
+- Node.js và npm
+- MySQL cho các API backend sử dụng cơ sở dữ liệu
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Chạy frontend
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+Frontend mặc định chạy tại `http://localhost:5173`.
+
+Tài khoản demo hiện tại:
+
+- Tên đăng nhập: `admin`
+- Mật khẩu: `123456`
+
+## Chạy backend
+
+Tạo file môi trường cục bộ từ file mẫu:
+
+```powershell
+cd backend
+Copy-Item .env.example .env
+```
+
+Cập nhật thông tin kết nối MySQL trong `.env`, sau đó cài dependency và chạy server:
+
+```powershell
+npm.cmd ci
+npm.cmd run dev
+```
+
+Backend mặc định chạy tại `http://localhost:3000` với các nhóm endpoint:
+
+- `/api/devices`
+- `/api/sensors`
+- `/api/action-history`
+
+## Kiểm tra frontend
+
+```powershell
+cd frontend
+npm.cmd run lint
+npm.cmd run build
+```
+
+Không commit các thư mục `node_modules`, `dist` hoặc file `.env`. Chỉ sử dụng `.env.example` để mô tả các biến môi trường cần thiết.
