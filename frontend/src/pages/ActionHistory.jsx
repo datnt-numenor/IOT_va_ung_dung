@@ -118,6 +118,7 @@ function ActionHistory() {
       title="Action History"
       subtitle="Lịch sử điều khiển và phản hồi thiết bị"
     >
+      <div className="records-page">
       <section className="panel filter-panel action-filter-panel">
         <h2>Bộ lọc lịch sử thiết bị</h2>
 
@@ -273,6 +274,7 @@ function ActionHistory() {
           </div>
         </div>
       </section>
+      </div>
     </MainLayout>
   );
 }

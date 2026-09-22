@@ -133,6 +133,7 @@ function DataSensor() {
       title="Data Sensor"
       subtitle="Tra cứu lịch sử giá trị theo từng loại cảm biến"
     >
+      <div className="records-page">
       <section className="panel filter-panel sensor-filter-panel">
         <h2>Tìm kiếm và lọc dữ liệu</h2>
 
@@ -272,6 +273,7 @@ function DataSensor() {
           </div>
         </div>
       </section>
+      </div>
     </MainLayout>
   );
 }

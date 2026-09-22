@@ -623,26 +623,34 @@ p {
 }
 
 /* Filters and tables */
+.records-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  height: calc(100dvh - 160px);
+  min-width: 0;
+  min-height: 0;
+}
 .filter-panel {
-  padding: 20px 24px;
+  padding: 16px 20px;
 }
 .sensor-filter-panel {
-  min-height: 154px;
+  min-height: 0;
 }
 .action-filter-panel {
-  min-height: 178px;
+  min-height: 0;
 }
 .search-bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .search-bar input,
 .search-bar select,
 .rows-per-page {
-  height: 50px;
+  height: 44px;
   padding: 0 16px;
   color: #384559;
   background: #f9fafc;
@@ -688,6 +696,10 @@ p {
   font-weight: 600;
   cursor: pointer;
 }
+.records-page .primary-button,
+.records-page .secondary-button {
+  height: 44px;
+}
 
 .primary-button {
   color: #fff;
@@ -704,23 +716,32 @@ p {
 }
 
 .table-panel {
-  min-height: 638px;
-  margin-top: 24px;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  margin-top: 0;
   padding: 20px 24px 24px;
+  flex-direction: column;
 }
 .panel-heading {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 .panel-heading span {
   color: #616e85;
   font-size: 11px;
 }
 .table-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   width: 100%;
-  overflow-x: auto;
+  max-width: 100%;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 .data-table {
   width: 100%;
@@ -738,6 +759,9 @@ p {
   white-space: nowrap;
 }
 .data-table th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
   height: 50px;
   color: #4d5c75;
   background: #edf2fa;
@@ -859,10 +883,11 @@ p {
 
 .table-footer {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 30px;
+  margin-top: 16px;
 }
 .pagination-info {
   color: #718097;
@@ -1281,6 +1306,9 @@ p {
   .page-content {
     padding: 28px;
   }
+  .records-page {
+    height: calc(100dvh - 144px);
+  }
   .sensor-grid {
     gap: 18px;
   }
@@ -1398,6 +1426,12 @@ p {
   }
   .page-content {
     padding: 20px;
+  }
+  .records-page {
+    height: auto;
+  }
+  .records-page .table-panel {
+    height: clamp(480px, 72dvh, 680px);
   }
   .sensor-search-bar {
     flex-wrap: wrap;
