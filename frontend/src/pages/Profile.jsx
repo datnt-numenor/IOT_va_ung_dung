@@ -22,8 +22,6 @@ function Profile() {
             <span>EMAIL TÀI KHOẢN</span>
             <p>datnt.b23cn139@stu.ptit.edu.vn</p>
           </div>
-
-          <span className="account-status"><i />Tài khoản hoạt động</span>
         </section>
 
         <div className="profile-main">
@@ -31,37 +29,37 @@ function Profile() {
             <h2>Tài nguyên dự án</h2>
 
             <div className="profile-links">
-          <ProfileLink
-            title="GitHub Source"
-            description="github.com/nguyentien-dat/iot-room"
-            url="#"
-            code="GH"
-            tone="github"
-          />
+              <ProfileLink
+                title="GitHub Source"
+                description="https://github.com/datnt-numenor/IOT_va_ung_dung"
+                url="#"
+                code="GH"
+                tone="github"
+              />
 
-          <ProfileLink
-            title="Figma Design"
-            description="figma.com/design/oV8EXsmIogdvIPIk4qzZfX"
-            url="#"
-            code="FI"
-            tone="figma"
-          />
+              <ProfileLink
+                title="Figma Design"
+                description="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1&t=PVTaUIWj005hQ3SO-1"
+                url="#"
+                code="FI"
+                tone="figma"
+              />
 
-          <ProfileLink
-            title="Postman API"
-            description="postman.com/collections/iot-room-api"
-            url="#"
-            code="PM"
-            tone="postman"
-          />
+              <ProfileLink
+                title="Postman API"
+                description="postman.com/collections/iot-room-api"
+                url="#"
+                code="PM"
+                tone="postman"
+              />
 
-          <ProfileLink
-            title="Báo cáo cuối kỳ"
-            description="drive.google.com/iot-room-report"
-            url="#"
-            code="PDF"
-            tone="pdf"
-          />
+              <ProfileLink
+                title="Báo cáo cuối kỳ"
+                description="drive.google.com/iot-room-report"
+                url="#"
+                code="PDF"
+                tone="pdf"
+              />
             </div>
           </section>
 
@@ -69,12 +67,30 @@ function Profile() {
             <h2>Thông tin học phần</h2>
 
             <div className="academic-grid">
-              <div><span>HỌ TÊN</span><strong>Nguyễn Tiến Đạt</strong></div>
-              <div><span>MÃ SINH VIÊN</span><strong>B23DCCN139</strong></div>
-              <div><span>LỚP</span><strong>D23CNPM06</strong></div>
-              <div><span>NHÓM HỌC PHẦN</span><strong>10</strong></div>
-              <div><span>GIẢNG VIÊN</span><strong>Nguyễn Quốc Uy</strong></div>
-              <div><span>DỰ ÁN</span><strong>IoT Room Monitoring</strong></div>
+              <div>
+                <span>HỌ TÊN</span>
+                <strong>Nguyễn Tiến Đạt</strong>
+              </div>
+              <div>
+                <span>MÃ SINH VIÊN</span>
+                <strong>B23DCCN139</strong>
+              </div>
+              <div>
+                <span>LỚP</span>
+                <strong>D23CNPM06</strong>
+              </div>
+              <div>
+                <span>NHÓM HỌC PHẦN</span>
+                <strong>10</strong>
+              </div>
+              <div>
+                <span>GIẢNG VIÊN</span>
+                <strong>Nguyễn Quốc Uy</strong>
+              </div>
+              <div>
+                <span>DỰ ÁN</span>
+                <strong>IoT Room Monitoring</strong>
+              </div>
             </div>
           </section>
         </div>

@@ -3,7 +3,14 @@ import MainLayout from "../components/MainLayout";
 import SensorCard from "../components/SensorCard";
 import DeviceControl from "../components/DeviceControl";
 import SensorChart from "../components/SensorChart";
-import { Droplets, Fan, Lightbulb, Snowflake, Sun, Thermometer } from "lucide-react";
+import {
+  Droplets,
+  Fan,
+  Lightbulb,
+  Snowflake,
+  Sun,
+  Thermometer,
+} from "lucide-react";
 
 function Dashboard() {
   const [temperature, _setTemperature] = useState(28);
@@ -190,11 +197,6 @@ function Dashboard() {
               <span>Uptime MQTT</span>
             </div>
           </div>
-
-          <p className="summary-footnote">
-            Dữ liệu mô phỏng phục vụ thiết kế SRS · Cập nhật gần nhất:
-            15/08/2026 11:20:42
-          </p>
         </div>
       </div>
     </MainLayout>
