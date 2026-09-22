@@ -125,7 +125,8 @@ function DataSensor() {
 
     return pages;
   }
-  const sortMark = (key) => (sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕");
+  const sortMark = (key) =>
+    sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
 
   return (
     <MainLayout
@@ -138,12 +139,22 @@ function DataSensor() {
         <form className="search-bar sensor-search-bar" onSubmit={handleSearch}>
           <input
             type="text"
-            placeholder={searchField === "time" ? "YYYY-MM-DD HH:mm:ss" : "Nhập giá trị cần tìm..."}
+            placeholder={
+              searchField === "time"
+                ? "YYYY-MM-DD HH:mm:ss"
+                : "Nhập giá trị cần tìm..."
+            }
             value={search}
             onChange={(event) => {
               const value = event.target.value;
               setSearch(value);
-              setSearchMode(value.trim() ? "keyword" : searchField === "all" ? "all" : "field");
+              setSearchMode(
+                value.trim()
+                  ? "keyword"
+                  : searchField === "all"
+                    ? "all"
+                    : "field",
+              );
             }}
           />
 
@@ -152,7 +163,9 @@ function DataSensor() {
             onChange={(event) => {
               const value = event.target.value;
               setSearchField(value);
-              setSearchMode(value === "all" ? (search.trim() ? "keyword" : "all") : "field");
+              setSearchMode(
+                value === "all" ? (search.trim() ? "keyword" : "all") : "field",
+              );
             }}
           >
             <option value="all">Tất cả</option>
@@ -166,11 +179,6 @@ function DataSensor() {
             Tìm kiếm
           </button>
         </form>
-
-        <p className="filter-hint">
-          Mặc định: tìm tất cả · Dropdown: Thời gian / Nhiệt độ / Độ ẩm /
-          Ánh sáng · Thời gian: YYYY-MM-DD HH:mm:ss
-        </p>
       </section>
 
       <section className="panel table-panel">
@@ -184,10 +192,16 @@ function DataSensor() {
             <thead>
               <tr>
                 <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
-                <th onClick={() => handleSort("sensor")}>LOẠI CẢM BIẾN{sortMark("sensor")}</th>
-                <th onClick={() => handleSort("value")}>GIÁ TRỊ{sortMark("value")}</th>
+                <th onClick={() => handleSort("sensor")}>
+                  LOẠI CẢM BIẾN{sortMark("sensor")}
+                </th>
+                <th onClick={() => handleSort("value")}>
+                  GIÁ TRỊ{sortMark("value")}
+                </th>
                 <th>ĐƠN VỊ</th>
-                <th onClick={() => handleSort("time")}>THỜI GIAN ĐO{sortMark("time")}</th>
+                <th onClick={() => handleSort("time")}>
+                  THỜI GIAN ĐO{sortMark("time")}
+                </th>
               </tr>
             </thead>
 
@@ -207,7 +221,9 @@ function DataSensor() {
 
         <div className="table-footer">
           <span className="pagination-info">
-            Hiển thị {sortedData.length ? startIndex + 1 : 0}–{Math.min(endIndex, sortedData.length)} trong {sortedData.length} bản ghi
+            Hiển thị {sortedData.length ? startIndex + 1 : 0}–
+            {Math.min(endIndex, sortedData.length)} trong {sortedData.length}{" "}
+            bản ghi
           </span>
 
           <div className="pagination-tools">
@@ -227,13 +243,31 @@ function DataSensor() {
             </label>
 
             <div className="pagination">
-              <button onClick={() => setCurrentPage((prev) => prev - 1)} disabled={currentPage === 1} aria-label="Trang trước">‹</button>
+              <button
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                disabled={currentPage === 1}
+                aria-label="Trang trước"
+              >
+                ‹
+              </button>
               {currentPage > 3 && <span>...</span>}
               {getVisiblePages().map((page) => (
-                <button key={page} onClick={() => setCurrentPage(page)} className={currentPage === page ? "page-active" : ""}>{page}</button>
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={currentPage === page ? "page-active" : ""}
+                >
+                  {page}
+                </button>
               ))}
               {currentPage < totalPages - 2 && <span>...</span>}
-              <button onClick={() => setCurrentPage((prev) => prev + 1)} disabled={currentPage >= totalPages} aria-label="Trang sau">›</button>
+              <button
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                disabled={currentPage >= totalPages}
+                aria-label="Trang sau"
+              >
+                ›
+              </button>
             </div>
           </div>
         </div>

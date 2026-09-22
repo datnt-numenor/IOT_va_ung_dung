@@ -1,4 +1,4 @@
-const actionHistory = [
+const initialActionHistory = [
   {
     id: 1,
     device: "Light",
@@ -35,5 +35,32 @@ const actionHistory = [
     time: "2026-09-07 15:24:40",
   },
 ];
+
+const devices = ["Light", "Fan", "AC"];
+const actions = ["ON", "OFF"];
+const statuses = ["ON", "OFF", "LOADING", "FAILED"];
+
+const formatDateTime = (date) =>
+  date.toISOString().replace("T", " ").slice(0, 19);
+
+const additionalActionHistory = Array.from({ length: 42 }, (_, index) => {
+  const id = initialActionHistory.length + index + 1;
+  const occurredAt = new Date(
+    Date.UTC(2026, 8, 7, 15, 24, 40 + (index + 1) * 70),
+  );
+
+  return {
+    id,
+    device: devices[index % devices.length],
+    action: actions[Math.floor(index / devices.length) % actions.length],
+    status:
+      statuses[
+        Math.floor(index / (devices.length * actions.length)) % statuses.length
+      ],
+    time: formatDateTime(occurredAt),
+  };
+});
+
+const actionHistory = [...initialActionHistory, ...additionalActionHistory];
 
 export default actionHistory;

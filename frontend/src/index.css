@@ -702,12 +702,6 @@ p {
   background: #f9fafc;
   border: 1px solid #dbe3f0;
 }
-.filter-hint {
-  margin: 12px 0 0;
-  color: #718097;
-  font-size: 10px;
-  line-height: 1.4;
-}
 
 .table-panel {
   min-height: 638px;
@@ -733,21 +727,22 @@ p {
   border-spacing: 0 2px;
   border-collapse: separate;
   color: #131b29;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 500;
 }
 .data-table th,
 .data-table td {
-  height: 42px;
+  height: 50px;
   padding: 0 16px;
   text-align: left;
   white-space: nowrap;
 }
 .data-table th {
-  height: 46px;
+  height: 50px;
   color: #4d5c75;
   background: #edf2fa;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 .data-table th:first-child {
@@ -764,6 +759,18 @@ p {
 }
 .data-table td:first-child {
   color: #718097;
+}
+.sensor-table {
+  min-width: 760px;
+}
+.action-table {
+  min-width: 960px;
+}
+.sensor-table td:nth-child(2),
+.sensor-table td:nth-child(3),
+.action-table td:nth-child(2),
+.action-table td:nth-child(3) {
+  font-weight: 600;
 }
 .sensor-table th:nth-child(4),
 .action-table th:nth-child(3) {
@@ -804,7 +811,7 @@ p {
 }
 
 .action-value {
-  font-weight: 500;
+  font-weight: 600;
 }
 .action-value.on {
   color: #16a34a;
@@ -816,7 +823,7 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 .status-badge::before {
@@ -842,6 +849,12 @@ p {
 }
 .status-badge.loading::before {
   background: #f59e0b;
+}
+.status-badge.failed {
+  color: #dc2626;
+}
+.status-badge.failed::before {
+  background: #dc2626;
 }
 
 .table-footer {

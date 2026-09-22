@@ -32,31 +32,31 @@ function Profile() {
               <ProfileLink
                 title="GitHub Source"
                 description="https://github.com/datnt-numenor/IOT_va_ung_dung"
-                url="#"
+                url="https://github.com/datnt-numenor/IOT_va_ung_dung"
                 code="GH"
                 tone="github"
               />
 
               <ProfileLink
                 title="Figma Design"
-                description="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1&t=PVTaUIWj005hQ3SO-1"
-                url="#"
+                description="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1"
+                url="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1"
                 code="FI"
                 tone="figma"
               />
 
               <ProfileLink
                 title="Postman API"
-                description="postman.com/collections/iot-room-api"
-                url="#"
+                description="datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung"
+                url="https://datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung~8f049eba-e674-4ad6-b92b-eeb56e32e5b3/collection/57506128-01b6ee5c-0446-46fb-a27b-e30500a01c7f?action=share&source=copy-link&creator=57506128"
                 code="PM"
                 tone="postman"
               />
 
               <ProfileLink
                 title="Báo cáo cuối kỳ"
-                description="drive.google.com/iot-room-report"
-                url="#"
+                description="drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_"
+                url="https://drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_?usp=drive_link"
                 code="PDF"
                 tone="pdf"
               />

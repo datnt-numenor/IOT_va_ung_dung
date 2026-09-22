@@ -3,7 +3,11 @@ import { useState } from "react";
 import MainLayout from "../components/MainLayout";
 import actionHistory from "../data/actionHistory";
 
-const deviceLabels = { Light: "Đèn phòng", Fan: "Quạt thông gió", AC: "Điều hòa" };
+const deviceLabels = {
+  Light: "Đèn phòng",
+  Fan: "Quạt thông gió",
+  AC: "Điều hòa",
+};
 const actionLabels = { ON: "BẬT", OFF: "TẮT" };
 
 function ActionHistory() {
@@ -106,7 +110,8 @@ function ActionHistory() {
     return pages;
   }
 
-  const sortMark = (key) => (sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕");
+  const sortMark = (key) =>
+    sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
 
   return (
     <MainLayout
@@ -124,20 +129,29 @@ function ActionHistory() {
             onChange={(event) => updateFilter("time", event.target.value)}
           />
 
-          <select value={filters.device} onChange={(event) => updateFilter("device", event.target.value)}>
+          <select
+            value={filters.device}
+            onChange={(event) => updateFilter("device", event.target.value)}
+          >
             <option value="">Tất cả thiết bị</option>
             <option value="Light">Đèn phòng</option>
             <option value="Fan">Quạt thông gió</option>
             <option value="AC">Điều hòa</option>
           </select>
 
-          <select value={filters.action} onChange={(event) => updateFilter("action", event.target.value)}>
+          <select
+            value={filters.action}
+            onChange={(event) => updateFilter("action", event.target.value)}
+          >
             <option value="">Action: Tất cả</option>
             <option value="ON">Bật</option>
             <option value="OFF">Tắt</option>
           </select>
 
-          <select value={filters.status} onChange={(event) => updateFilter("status", event.target.value)}>
+          <select
+            value={filters.status}
+            onChange={(event) => updateFilter("status", event.target.value)}
+          >
             <option value="">Status: Tất cả</option>
             <option value="ON">ON</option>
             <option value="OFF">OFF</option>
@@ -145,13 +159,17 @@ function ActionHistory() {
             <option value="FAILED">FAILED</option>
           </select>
 
-          <button type="submit" className="primary-button">Tìm kiếm</button>
-          <button type="button" className="secondary-button" onClick={resetFilters}>Đặt lại</button>
+          <button type="submit" className="primary-button">
+            Tìm kiếm
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={resetFilters}
+          >
+            Đặt lại
+          </button>
         </form>
-
-        <p className="filter-hint">
-          Action = yêu cầu của người dùng · Status = phản hồi thực tế từ ESP32.
-        </p>
       </section>
 
       <section className="panel table-panel action-table-panel">
@@ -165,11 +183,19 @@ function ActionHistory() {
             <thead>
               <tr>
                 <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
-                <th onClick={() => handleSort("device")}>THIẾT BỊ{sortMark("device")}</th>
+                <th onClick={() => handleSort("device")}>
+                  THIẾT BỊ{sortMark("device")}
+                </th>
                 <th>NGƯỜI THỰC HIỆN</th>
-                <th onClick={() => handleSort("action")}>ACTION{sortMark("action")}</th>
-                <th onClick={() => handleSort("status")}>STATUS{sortMark("status")}</th>
-                <th onClick={() => handleSort("time")}>THỜI GIAN{sortMark("time")}</th>
+                <th onClick={() => handleSort("action")}>
+                  ACTION{sortMark("action")}
+                </th>
+                <th onClick={() => handleSort("status")}>
+                  STATUS{sortMark("status")}
+                </th>
+                <th onClick={() => handleSort("time")}>
+                  THỜI GIAN{sortMark("time")}
+                </th>
               </tr>
             </thead>
 
@@ -179,8 +205,16 @@ function ActionHistory() {
                   <td>#{item.id}</td>
                   <td>{deviceLabels[item.device] || item.device}</td>
                   <td>Nguyễn Tiến Đạt</td>
-                  <td className={`action-value ${item.action.toLowerCase()}`}>{actionLabels[item.action] || item.action}</td>
-                  <td><span className={`status-badge ${item.status.toLowerCase()}`}>{item.status}</span></td>
+                  <td className={`action-value ${item.action.toLowerCase()}`}>
+                    {actionLabels[item.action] || item.action}
+                  </td>
+                  <td>
+                    <span
+                      className={`status-badge ${item.status.toLowerCase()}`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
                   <td>{item.time}</td>
                 </tr>
               ))}
@@ -190,13 +224,21 @@ function ActionHistory() {
 
         <div className="table-footer">
           <span className="pagination-info">
-            Hiển thị {sortedData.length ? startIndex + 1 : 0}–{Math.min(endIndex, sortedData.length)} trong {sortedData.length} hoạt động
+            Hiển thị {sortedData.length ? startIndex + 1 : 0}–
+            {Math.min(endIndex, sortedData.length)} trong {sortedData.length}{" "}
+            hoạt động
           </span>
 
           <div className="pagination-tools">
             <label className="rows-per-page">
               Số dòng / trang:
-              <select value={rowsPerPage} onChange={(event) => { setRowsPerPage(Number(event.target.value)); setCurrentPage(1); }}>
+              <select
+                value={rowsPerPage}
+                onChange={(event) => {
+                  setRowsPerPage(Number(event.target.value));
+                  setCurrentPage(1);
+                }}
+              >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -204,11 +246,29 @@ function ActionHistory() {
             </label>
 
             <div className="pagination">
-              <button onClick={() => setCurrentPage((prev) => prev - 1)} disabled={currentPage === 1} aria-label="Trang trước">‹</button>
+              <button
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                disabled={currentPage === 1}
+                aria-label="Trang trước"
+              >
+                ‹
+              </button>
               {getVisiblePages().map((page) => (
-                <button key={page} onClick={() => setCurrentPage(page)} className={currentPage === page ? "page-active" : ""}>{page}</button>
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={currentPage === page ? "page-active" : ""}
+                >
+                  {page}
+                </button>
               ))}
-              <button onClick={() => setCurrentPage((prev) => prev + 1)} disabled={currentPage >= totalPages} aria-label="Trang sau">›</button>
+              <button
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                disabled={currentPage >= totalPages}
+                aria-label="Trang sau"
+              >
+                ›
+              </button>
             </div>
           </div>
         </div>

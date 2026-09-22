@@ -1,6 +1,12 @@
 function ProfileLink({ title, description, url, code, tone }) {
   return (
-    <a className="profile-link" href={url} target="_blank" rel="noreferrer">
+    <a
+      className="profile-link"
+      href={url}
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label={`${title}: mở liên kết trong tab mới`}
+    >
       <span className={`resource-icon ${tone}`}>{code}</span>
 
       <div className="resource-copy">
