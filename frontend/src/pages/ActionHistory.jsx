@@ -28,7 +28,7 @@ function ActionHistory() {
   const [sortDirection, setSortDirection] = useState("asc");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const filteredData = actionHistory.filter((item) => {
     const time = appliedFilters.time.trim().toLowerCase();
@@ -261,14 +261,10 @@ function ActionHistory() {
                 >
                   ‹
                 </button>
-                {currentPage > 3 && (
+
+                {totalPages > 5 && currentPage > 3 && (
                   <>
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      className={currentPage === 1 ? "page-active" : ""}
-                    >
-                      1
-                    </button>
+                    <button onClick={() => setCurrentPage(1)}>1</button>
                     <span>...</span>
                   </>
                 )}
@@ -283,19 +279,15 @@ function ActionHistory() {
                   </button>
                 ))}
 
-                {currentPage < totalPages - 2 && (
+                {totalPages > 5 && currentPage < totalPages - 2 && (
                   <>
                     <span>...</span>
-                    <button
-                      onClick={() => setCurrentPage(totalPages)}
-                      className={
-                        currentPage === totalPages ? "page-active" : ""
-                      }
-                    >
+                    <button onClick={() => setCurrentPage(totalPages)}>
                       {totalPages}
                     </button>
                   </>
                 )}
+
                 <button
                   onClick={() => setCurrentPage((prev) => prev + 1)}
                   disabled={currentPage >= totalPages}

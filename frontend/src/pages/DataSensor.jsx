@@ -262,7 +262,7 @@ function DataSensor() {
                   ‹
                 </button>
 
-                {currentPage > 3 && (
+                {totalPages > 5 && currentPage > 3 && (
                   <>
                     <button onClick={() => setCurrentPage(1)}>1</button>
                     <span>...</span>
@@ -279,7 +279,7 @@ function DataSensor() {
                   </button>
                 ))}
 
-                {currentPage < totalPages - 2 && (
+                {totalPages > 5 && currentPage < totalPages - 2 && (
                   <>
                     <span>...</span>
                     <button onClick={() => setCurrentPage(totalPages)}>
