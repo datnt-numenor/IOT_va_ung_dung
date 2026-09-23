@@ -99,15 +99,19 @@ function ActionHistory() {
   }
 
   function getVisiblePages() {
-    const pages = [];
-    const start = Math.max(1, currentPage - 2);
-    const end = Math.min(totalPages, currentPage + 2);
-
-    for (let page = start; page <= end; page++) {
-      pages.push(page);
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
 
-    return pages;
+    if (currentPage <= 3) {
+      return [1, 2, 3];
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return [totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [currentPage - 1, currentPage, currentPage + 1];
   }
 
   const sortMark = (key) =>
@@ -119,161 +123,190 @@ function ActionHistory() {
       subtitle="Lịch sử điều khiển và phản hồi thiết bị"
     >
       <div className="records-page">
-      <section className="panel filter-panel action-filter-panel">
-        <h2>Bộ lọc lịch sử thiết bị</h2>
+        <section className="panel filter-panel action-filter-panel">
+          <h2>Bộ lọc lịch sử thiết bị</h2>
 
-        <form className="search-bar action-search-bar" onSubmit={handleSearch}>
-          <input
-            type="text"
-            placeholder="YYYY-MM-DD HH:mm"
-            value={filters.time}
-            onChange={(event) => updateFilter("time", event.target.value)}
-          />
-
-          <select
-            value={filters.device}
-            onChange={(event) => updateFilter("device", event.target.value)}
+          <form
+            className="search-bar action-search-bar"
+            onSubmit={handleSearch}
           >
-            <option value="">Tất cả thiết bị</option>
-            <option value="Light">Đèn phòng</option>
-            <option value="Fan">Quạt thông gió</option>
-            <option value="AC">Điều hòa</option>
-          </select>
+            <input
+              type="text"
+              placeholder="YYYY-MM-DD HH:mm"
+              value={filters.time}
+              onChange={(event) => updateFilter("time", event.target.value)}
+            />
 
-          <select
-            value={filters.action}
-            onChange={(event) => updateFilter("action", event.target.value)}
-          >
-            <option value="">Action: Tất cả</option>
-            <option value="ON">Bật</option>
-            <option value="OFF">Tắt</option>
-          </select>
+            <select
+              value={filters.device}
+              onChange={(event) => updateFilter("device", event.target.value)}
+            >
+              <option value="">Tất cả thiết bị</option>
+              <option value="Light">Đèn phòng</option>
+              <option value="Fan">Quạt thông gió</option>
+              <option value="AC">Điều hòa</option>
+            </select>
 
-          <select
-            value={filters.status}
-            onChange={(event) => updateFilter("status", event.target.value)}
-          >
-            <option value="">Status: Tất cả</option>
-            <option value="ON">ON</option>
-            <option value="OFF">OFF</option>
-            <option value="LOADING">LOADING</option>
-            <option value="FAILED">FAILED</option>
-          </select>
+            <select
+              value={filters.action}
+              onChange={(event) => updateFilter("action", event.target.value)}
+            >
+              <option value="">Action: Tất cả</option>
+              <option value="ON">Bật</option>
+              <option value="OFF">Tắt</option>
+            </select>
 
-          <button type="submit" className="primary-button">
-            Tìm kiếm
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={resetFilters}
-          >
-            Đặt lại
-          </button>
-        </form>
-      </section>
+            <select
+              value={filters.status}
+              onChange={(event) => updateFilter("status", event.target.value)}
+            >
+              <option value="">Status: Tất cả</option>
+              <option value="ON">ON</option>
+              <option value="OFF">OFF</option>
+              <option value="LOADING">LOADING</option>
+              <option value="FAILED">FAILED</option>
+            </select>
 
-      <section className="panel table-panel action-table-panel">
-        <div className="panel-heading">
-          <h2>Lịch sử bật/tắt thiết bị</h2>
-          <span>{sortedData.length} hoạt động · đồng bộ MQTT</span>
-        </div>
+            <button type="submit" className="primary-button">
+              Tìm kiếm
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={resetFilters}
+            >
+              Đặt lại
+            </button>
+          </form>
+        </section>
 
-        <div className="table-scroll">
-          <table className="data-table action-table">
-            <thead>
-              <tr>
-                <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
-                <th onClick={() => handleSort("device")}>
-                  THIẾT BỊ{sortMark("device")}
-                </th>
-                <th>NGƯỜI THỰC HIỆN</th>
-                <th onClick={() => handleSort("action")}>
-                  ACTION{sortMark("action")}
-                </th>
-                <th onClick={() => handleSort("status")}>
-                  STATUS{sortMark("status")}
-                </th>
-                <th onClick={() => handleSort("time")}>
-                  THỜI GIAN{sortMark("time")}
-                </th>
-              </tr>
-            </thead>
+        <section className="panel table-panel action-table-panel">
+          <div className="panel-heading">
+            <h2>Lịch sử bật/tắt thiết bị</h2>
+            <span>{sortedData.length} hoạt động · đồng bộ MQTT</span>
+          </div>
 
-            <tbody>
-              {paginatedData.map((item) => (
-                <tr key={item.id}>
-                  <td>#{item.id}</td>
-                  <td>{deviceLabels[item.device] || item.device}</td>
-                  <td>Nguyễn Tiến Đạt</td>
-                  <td className={`action-value ${item.action.toLowerCase()}`}>
-                    {actionLabels[item.action] || item.action}
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge ${item.status.toLowerCase()}`}
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td>{item.time}</td>
+          <div className="table-scroll">
+            <table className="data-table action-table">
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
+                  <th onClick={() => handleSort("device")}>
+                    THIẾT BỊ{sortMark("device")}
+                  </th>
+                  <th>NGƯỜI THỰC HIỆN</th>
+                  <th onClick={() => handleSort("action")}>
+                    ACTION{sortMark("action")}
+                  </th>
+                  <th onClick={() => handleSort("status")}>
+                    STATUS{sortMark("status")}
+                  </th>
+                  <th onClick={() => handleSort("time")}>
+                    THỜI GIAN{sortMark("time")}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
 
-        <div className="table-footer">
-          <span className="pagination-info">
-            Hiển thị {sortedData.length ? startIndex + 1 : 0}–
-            {Math.min(endIndex, sortedData.length)} trong {sortedData.length}{" "}
-            hoạt động
-          </span>
+              <tbody>
+                {paginatedData.map((item) => (
+                  <tr key={item.id}>
+                    <td>#{item.id}</td>
+                    <td>{deviceLabels[item.device] || item.device}</td>
+                    <td>Nguyễn Tiến Đạt</td>
+                    <td className={`action-value ${item.action.toLowerCase()}`}>
+                      {actionLabels[item.action] || item.action}
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${item.status.toLowerCase()}`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                    <td>{item.time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="pagination-tools">
-            <label className="rows-per-page">
-              Số dòng / trang:
-              <select
-                value={rowsPerPage}
-                onChange={(event) => {
-                  setRowsPerPage(Number(event.target.value));
-                  setCurrentPage(1);
-                }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-              </select>
-            </label>
+          <div className="table-footer">
+            <span className="pagination-info">
+              Hiển thị {sortedData.length ? startIndex + 1 : 0}–
+              {Math.min(endIndex, sortedData.length)} trong {sortedData.length}{" "}
+              hoạt động
+            </span>
 
-            <div className="pagination">
-              <button
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                disabled={currentPage === 1}
-                aria-label="Trang trước"
-              >
-                ‹
-              </button>
-              {getVisiblePages().map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? "page-active" : ""}
+            <div className="pagination-tools">
+              <label className="rows-per-page">
+                Số dòng / trang:
+                <select
+                  value={rowsPerPage}
+                  onChange={(event) => {
+                    setRowsPerPage(Number(event.target.value));
+                    setCurrentPage(1);
+                  }}
                 >
-                  {page}
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </label>
+
+              <div className="pagination">
+                <button
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  disabled={currentPage === 1}
+                  aria-label="Trang trước"
+                >
+                  ‹
                 </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                disabled={currentPage >= totalPages}
-                aria-label="Trang sau"
-              >
-                ›
-              </button>
+                {currentPage > 3 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      className={currentPage === 1 ? "page-active" : ""}
+                    >
+                      1
+                    </button>
+                    <span>...</span>
+                  </>
+                )}
+
+                {getVisiblePages().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={currentPage === page ? "page-active" : ""}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {currentPage < totalPages - 2 && (
+                  <>
+                    <span>...</span>
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      className={
+                        currentPage === totalPages ? "page-active" : ""
+                      }
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  disabled={currentPage >= totalPages}
+                  aria-label="Trang sau"
+                >
+                  ›
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
       </div>
     </MainLayout>
   );
