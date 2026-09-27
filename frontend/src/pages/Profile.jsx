@@ -1,6 +1,15 @@
 import MainLayout from "../components/MainLayout";
 import ProfileLink from "../components/ProfileLink";
 
+const academicDetails = [
+  ["HỌ TÊN", "Nguyễn Tiến Đạt"],
+  ["MÃ SINH VIÊN", "B23DCCN139"],
+  ["LỚP", "D23CNPM06"],
+  ["NHÓM HỌC PHẦN", "10"],
+  ["GIẢNG VIÊN", "Nguyễn Quốc Uy"],
+  ["DỰ ÁN", "IoT Room Monitoring"],
+];
+
 function Profile() {
   return (
     <MainLayout
@@ -22,6 +31,18 @@ function Profile() {
             <span>EMAIL TÀI KHOẢN</span>
             <p>datnt.b23cn139@stu.ptit.edu.vn</p>
           </div>
+
+          <div className="profile-academic">
+            <h3>Thông tin học phần</h3>
+            <div className="academic-grid">
+              {academicDetails.map(([label, value]) => (
+                <div key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         <div className="profile-main">
@@ -31,66 +52,28 @@ function Profile() {
             <div className="profile-links">
               <ProfileLink
                 title="GitHub Source"
-                description="https://github.com/datnt-numenor/IOT_va_ung_dung"
+                description="github.com/datnt-numenor/IOT_va_ung_dung"
                 url="https://github.com/datnt-numenor/IOT_va_ung_dung"
-                code="GH"
-                tone="github"
+                brand="github"
               />
-
               <ProfileLink
                 title="Figma Design"
-                description="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1"
+                description="figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT"
                 url="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1"
-                code="FI"
-                tone="figma"
+                brand="figma"
               />
-
               <ProfileLink
                 title="Postman API"
                 description="datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung"
                 url="https://datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung~8f049eba-e674-4ad6-b92b-eeb56e32e5b3/collection/57506128-01b6ee5c-0446-46fb-a27b-e30500a01c7f?action=share&source=copy-link&creator=57506128"
-                code="PM"
-                tone="postman"
+                brand="postman"
               />
-
               <ProfileLink
                 title="Báo cáo cuối kỳ"
                 description="drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_"
                 url="https://drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_?usp=drive_link"
-                code="PDF"
-                tone="pdf"
+                brand="googledrive"
               />
-            </div>
-          </section>
-
-          <section className="panel academic-panel">
-            <h2>Thông tin học phần</h2>
-
-            <div className="academic-grid">
-              <div>
-                <span>HỌ TÊN</span>
-                <strong>Nguyễn Tiến Đạt</strong>
-              </div>
-              <div>
-                <span>MÃ SINH VIÊN</span>
-                <strong>B23DCCN139</strong>
-              </div>
-              <div>
-                <span>LỚP</span>
-                <strong>D23CNPM06</strong>
-              </div>
-              <div>
-                <span>NHÓM HỌC PHẦN</span>
-                <strong>10</strong>
-              </div>
-              <div>
-                <span>GIẢNG VIÊN</span>
-                <strong>Nguyễn Quốc Uy</strong>
-              </div>
-              <div>
-                <span>DỰ ÁN</span>
-                <strong>IoT Room Monitoring</strong>
-              </div>
             </div>
           </section>
         </div>

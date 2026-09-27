@@ -1,0 +1,57 @@
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sensors (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(30) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(30) NOT NULL,
+  unit VARCHAR(10) NOT NULL,
+  mqtt_topic VARCHAR(150) NOT NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT chk_sensor_type CHECK (type IN ('temperature', 'humidity', 'light'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS devices (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(30) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(30) NOT NULL,
+  command_topic VARCHAR(150) NOT NULL,
+  status_topic VARCHAR(150) NOT NULL,
+  current_status VARCHAR(10) NOT NULL DEFAULT 'OFF',
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT chk_device_status CHECK (current_status IN ('ON', 'OFF', 'LOADING', 'FAILED'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sensor_data (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  sensor_id BIGINT UNSIGNED NOT NULL,
+  value DECIMAL(10,2) NOT NULL,
+  measured_at DATETIME(3) NOT NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT fk_sensor_data_sensor FOREIGN KEY (sensor_id) REFERENCES sensors(id),
+  INDEX idx_sensor_data_sensor_time (sensor_id, measured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS action_history (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  device_id BIGINT UNSIGNED NOT NULL,
+  action VARCHAR(10) NOT NULL,
+  status VARCHAR(10) NOT NULL DEFAULT 'LOADING',
+  requested_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  completed_at DATETIME(3) NULL,
+  CONSTRAINT fk_action_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_action_device FOREIGN KEY (device_id) REFERENCES devices(id),
+  CONSTRAINT chk_action CHECK (action IN ('ON', 'OFF')),
+  CONSTRAINT chk_action_status CHECK (status IN ('LOADING', 'ON', 'OFF', 'FAILED')),
+  INDEX idx_action_device_time (device_id, requested_at),
+  INDEX idx_action_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

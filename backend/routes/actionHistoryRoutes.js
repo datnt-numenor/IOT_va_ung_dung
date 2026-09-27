@@ -1,9 +1,8 @@
 const express = require("express");
-
-const actionHistoryController = require("../controllers/actionHistoryController");
+const controller = require("../controllers/actionHistoryController");
+const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
-
-router.get("/", actionHistoryController.getActionHistory);
+router.get("/", asyncHandler(controller.getActionHistory));
 
 module.exports = router;

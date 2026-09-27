@@ -1,11 +1,9 @@
 const express = require("express");
-
-const deviceController = require("../controllers/deviceController");
+const controller = require("../controllers/deviceController");
+const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
-
-router.get("/status", deviceController.getDeviceStatus);
-
-router.post("/control", deviceController.controlDevice);
+router.get("/:deviceId/status", asyncHandler(controller.getDeviceStatus));
+router.post("/:deviceId/actions", asyncHandler(controller.controlDevice));
 
 module.exports = router;

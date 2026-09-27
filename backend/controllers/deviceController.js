@@ -1,43 +1,20 @@
 const deviceService = require("../services/deviceService");
+const { positiveInteger, enumValue } = require("../utils/query");
 
-function controlDevice(req, res) {
-  const { device, action } = req.body;
-
-  if (!device || !action) {
-    return res.status(400).json({
-      message: "device and action are required",
-    });
-  }
-
-  if (!["light", "fan", "ac"].includes(device)) {
-    return res.status(400).json({
-      message: "Invalid device",
-    });
-  }
-
-  if (!["ON", "OFF"].includes(action)) {
-    return res.status(400).json({
-      message: "Invalid action",
-    });
-  }
-
-  const result = deviceService.controlDevice(device, action);
-
-  return res.status(200).json({
-    message: "Control request received",
-    ...result,
-  });
+async function getDeviceStatus(req, res) {
+  const deviceId = positiveInteger(req.params.deviceId, null, "deviceId");
+  res.json(await deviceService.getDeviceStatus(deviceId));
 }
 
-function getDeviceStatus(req, res) {
-  const status = deviceService.getDeviceStatus();
-
-  return res.status(200).json({
-    data: status,
-  });
+async function controlDevice(req, res) {
+  const deviceId = positiveInteger(req.params.deviceId, null, "deviceId");
+  const action = enumValue(req.body?.action, ["ON", "OFF"], "action");
+  const userId = positiveInteger(
+    req.header("x-user-id") || process.env.DEFAULT_USER_ID || 1,
+    1,
+    "userId",
+  );
+  res.status(202).json(await deviceService.controlDevice({ deviceId, action, userId }));
 }
 
-module.exports = {
-  controlDevice,
-  getDeviceStatus,
-};
+module.exports = { getDeviceStatus, controlDevice };

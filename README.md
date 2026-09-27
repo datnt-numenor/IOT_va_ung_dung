@@ -48,11 +48,27 @@ npm.cmd ci
 npm.cmd run dev
 ```
 
-Backend mặc định chạy tại `http://localhost:3000` với các nhóm endpoint:
+Backend mặc định chạy tại `http://localhost:3000`. Khởi tạo database bằng
+`npm.cmd run db:init` và `npm.cmd run db:seed`; với database thử nghiệm cũ của
+dự án, dùng `npm.cmd run db:migrate-legacy` để giữ lại dữ liệu trong các bảng
+`*_legacy`. API chính dùng prefix `/api/v1`:
 
-- `/api/devices`
-- `/api/sensors`
-- `/api/action-history`
+- `/api/v1/sensors/realtime`
+- `/api/v1/sensor-data` và `/api/v1/sensor-data/chart`
+- `/api/v1/devices/:deviceId/status` và `/api/v1/devices/:deviceId/actions`
+- `/api/v1/action-history`
+
+Chi tiết payload MQTT, WebSocket và query API nằm trong `backend/README.md`.
+
+Để chạy trọn luồng local khi chưa có ESP32/Mosquitto thật:
+
+```powershell
+cd backend
+npm.cmd run e2e:start
+```
+
+Lệnh này khởi động broker kiểm thử, backend, ESP32 simulator và frontend tại
+`http://127.0.0.1:5173`.
 
 ## Kiểm tra frontend
 

@@ -17,7 +17,7 @@ const initialSensorData = [
     id: 3,
     sensor: "Light",
     value: 420,
-    unit: "lux",
+    unit: "ADC",
     time: "2026-08-31 18:20:10",
   },
   {
@@ -39,7 +39,7 @@ const initialSensorData = [
 const sensorDefinitions = [
   {
     sensor: "Light",
-    unit: "lux",
+    unit: "ADC",
     getValue: (index) => 250 + ((index * 37) % 551),
   },
   {

@@ -1,101 +1,41 @@
-const actionHistory = [
-  {
-    id: 1,
-    device: "light",
-    user: "Nguyễn Tiến Đạt",
-    action: "ON",
-    status: "ON",
-    time: "2026-09-17 18:00:00",
-  },
-  {
-    id: 2,
-    device: "fan",
-    user: "Nguyễn Tiến Đạt",
-    action: "ON",
-    status: "LOADING",
-    time: "2026-09-17 18:02:00",
-  },
-  {
-    id: 3,
-    device: "ac",
-    user: "Nguyễn Tiến Đạt",
-    action: "OFF",
-    status: "OFF",
-    time: "2026-09-17 18:05:00",
-  },
-  {
-    id: 4,
-    device: "light",
-    user: "Nguyễn Tiến Đạt",
-    action: "OFF",
-    status: "OFF",
-    time: "2026-09-17 18:10:00",
-  },
-];
+const db = require("../config/db");
+const { toIsoUtc } = require("../utils/query");
 
-function getActionHistory(options) {
-  const { page, limit, device, action, status, time, sortKey, sortDir } =
-    options;
-
-  let result = [...actionHistory];
-
-  if (device) {
-    result = result.filter((item) => item.device === device);
-  }
-
-  if (action) {
-    result = result.filter((item) => item.action === action);
-  }
-
-  if (status) {
-    result = result.filter((item) => item.status === status);
-  }
-
+async function getActionHistory(options) {
+  const { time, deviceId, action, status, page, size, sortColumn, sortDirection } = options;
+  const conditions = [];
+  const values = [];
   if (time) {
-    result = result.filter((item) => item.time.includes(time));
+    conditions.push("DATE_FORMAT(CONVERT_TZ(ah.requested_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?");
+    values.push(`${time}%`);
   }
+  if (deviceId) { conditions.push("ah.device_id = ?"); values.push(deviceId); }
+  if (action) { conditions.push("ah.action = ?"); values.push(action); }
+  if (status) { conditions.push("ah.status = ?"); values.push(status); }
 
-  result.sort((a, b) => {
-    if (a[sortKey] < b[sortKey]) {
-      return sortDir === "ASC" ? -1 : 1;
-    }
-
-    if (a[sortKey] > b[sortKey]) {
-      return sortDir === "ASC" ? 1 : -1;
-    }
-
-    return 0;
-  });
-
-  const total = result.length;
-  const totalPages = Math.ceil(total / limit);
-
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-
-  const data = result.slice(startIndex, endIndex);
-
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const joins = `FROM action_history ah
+    JOIN devices d ON d.id = ah.device_id
+    JOIN users u ON u.id = ah.user_id`;
+  const [[countRow]] = await db.execute(`SELECT COUNT(*) AS total ${joins} ${where}`, values);
+  const [rows] = await db.execute(
+    `SELECT ah.id, d.id AS deviceId, d.name AS deviceName,
+            u.id AS userId, u.full_name AS performedBy,
+            ah.action, ah.status, ah.requested_at AS requestedAt,
+            ah.completed_at AS completedAt
+     ${joins} ${where}
+     ORDER BY ${sortColumn} ${sortDirection} LIMIT ? OFFSET ?`,
+    [...values, size, (page - 1) * size],
+  );
+  const totalElements = Number(countRow.total);
   return {
-    page,
-    limit,
-    total,
-    totalPages,
-    data,
+    content: rows.map((row) => ({
+      ...row,
+      requestedAt: toIsoUtc(row.requestedAt),
+      completedAt: toIsoUtc(row.completedAt),
+    })),
+    page, size, totalElements, totalPages: Math.ceil(totalElements / size),
   };
 }
 
-function addActionHistory(record) {
-  const newRecord = {
-    id: actionHistory.length + 1,
-    ...record,
-  };
-
-  actionHistory.push(newRecord);
-
-  return newRecord;
-}
-
-module.exports = {
-  getActionHistory,
-  addActionHistory,
-};
+module.exports = { getActionHistory };
