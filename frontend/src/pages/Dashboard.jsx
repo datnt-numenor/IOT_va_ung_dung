@@ -167,6 +167,7 @@ function Dashboard() {
       title="Dashboard"
       subtitle="Giám sát phòng học theo thời gian thực"
       esp32Status={esp32Status}
+      contentClassName="dashboard-content"
     >
       <div className="dashboard-page">
         {error ? <div className="api-error" role="alert">{error}</div> : null}

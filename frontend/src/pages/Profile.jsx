@@ -1,13 +1,25 @@
+import {
+  BookOpen,
+  FolderOpen,
+  GraduationCap,
+  Hash,
+  IdCard,
+  Mail,
+  Pencil,
+  UserRound,
+  UsersRound,
+  FileText,
+} from "lucide-react";
 import MainLayout from "../components/MainLayout";
 import ProfileLink from "../components/ProfileLink";
 
 const academicDetails = [
-  ["HỌ TÊN", "Nguyễn Tiến Đạt"],
-  ["MÃ SINH VIÊN", "B23DCCN139"],
-  ["LỚP", "D23CNPM06"],
-  ["NHÓM HỌC PHẦN", "10"],
-  ["GIẢNG VIÊN", "Nguyễn Quốc Uy"],
-  ["DỰ ÁN", "IoT Room Monitoring"],
+  ["HỌ TÊN", "Nguyễn Tiến Đạt", UserRound],
+  ["MÃ SINH VIÊN", "B23DCCN139", IdCard],
+  ["LỚP", "D23CNPM06", UsersRound],
+  ["NHÓM HỌC PHẦN", "10", Hash],
+  ["GIẢNG VIÊN", "Nguyễn Quốc Uy", GraduationCap],
+  ["DỰ ÁN", "IoT Room Monitoring", FileText],
 ];
 
 function Profile() {
@@ -18,27 +30,59 @@ function Profile() {
     >
       <div className="profile-layout">
         <section className="panel profile-identity">
-          <h2>Hồ sơ cá nhân</h2>
+          <div className="profile-section-heading">
+            <span className="profile-heading-icon">
+              <UserRound size={23} aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Hồ sơ cá nhân</h2>
+              <p>Thông tin tài khoản và thông tin học phần</p>
+            </div>
+            <button className="profile-edit-button" type="button">
+              <Pencil size={14} aria-hidden="true" />
+              Chỉnh sửa
+            </button>
+          </div>
 
-          <div className="profile-avatar">Đ</div>
-          <h3>Nguyễn Tiến Đạt</h3>
-          <strong className="profile-student-id">B23DCCN139</strong>
-          <p className="profile-role">Sinh viên · IoT và ứng dụng</p>
+          <div className="profile-person">
+            <div className="profile-avatar">Đ</div>
+            <div className="profile-person-copy">
+              <h3>Nguyễn Tiến Đạt</h3>
+              <strong className="profile-student-id">B23DCCN139</strong>
+              <p className="profile-role">
+                <GraduationCap size={16} aria-hidden="true" />
+                Sinh viên · IoT và ứng dụng
+              </p>
+            </div>
+          </div>
 
           <div className="profile-divider" />
 
           <div className="profile-email">
-            <span>EMAIL TÀI KHOẢN</span>
-            <p>datnt.b23cn139@stu.ptit.edu.vn</p>
+            <span className="profile-field-icon">
+              <Mail size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <span>EMAIL TÀI KHOẢN</span>
+              <p>datnt.b23cn139@stu.ptit.edu.vn</p>
+            </div>
           </div>
 
           <div className="profile-academic">
-            <h3>Thông tin học phần</h3>
+            <h3>
+              <BookOpen size={18} aria-hidden="true" />
+              Thông tin học phần
+            </h3>
             <div className="academic-grid">
-              {academicDetails.map(([label, value]) => (
+              {academicDetails.map(([label, value, Icon]) => (
                 <div key={label}>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
+                  <span className="academic-icon">
+                    <Icon size={19} aria-hidden="true" />
+                  </span>
+                  <span className="academic-copy">
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                  </span>
                 </div>
               ))}
             </div>
@@ -47,30 +91,42 @@ function Profile() {
 
         <div className="profile-main">
           <section className="panel resources-panel">
-            <h2>Tài nguyên dự án</h2>
+            <div className="profile-section-heading resource-heading">
+              <span className="profile-heading-icon">
+                <FolderOpen size={23} aria-hidden="true" />
+              </span>
+              <div>
+                <h2>Tài nguyên dự án</h2>
+                <p>Các tài liệu và liên kết phục vụ cho dự án IoT Room Monitoring</p>
+              </div>
+            </div>
 
             <div className="profile-links">
               <ProfileLink
                 title="GitHub Source"
-                description="github.com/datnt-numenor/IOT_va_ung_dung"
+                description="Mã nguồn dự án trên GitHub"
+                displayUrl="github.com/datnt-numenor/IOT_va_ung_dung"
                 url="https://github.com/datnt-numenor/IOT_va_ung_dung"
                 brand="github"
               />
               <ProfileLink
                 title="Figma Design"
-                description="figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT"
+                description="Thiết kế giao diện trên Figma"
+                displayUrl="figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT"
                 url="https://www.figma.com/design/oV8EXsmIogdvIPIk4qzZfX/IoT?node-id=0-1"
                 brand="figma"
               />
               <ProfileLink
                 title="Postman API"
-                description="datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung"
+                description="Bộ sưu tập API trên Postman"
+                displayUrl="datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung"
                 url="https://datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung~8f049eba-e674-4ad6-b92b-eeb56e32e5b3/collection/57506128-01b6ee5c-0446-46fb-a27b-e30500a01c7f?action=share&source=copy-link&creator=57506128"
                 brand="postman"
               />
               <ProfileLink
                 title="Báo cáo cuối kỳ"
-                description="drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_"
+                description="Tài liệu báo cáo dự án"
+                displayUrl="drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_"
                 url="https://drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_?usp=drive_link"
                 brand="googledrive"
               />

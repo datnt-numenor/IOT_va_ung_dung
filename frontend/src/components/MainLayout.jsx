@@ -1,7 +1,13 @@
 import { formatChartTime } from "../utils/dateTime";
 import Sidebar from "./Sidebar";
 
-function MainLayout({ children, title, subtitle, esp32Status = null }) {
+function MainLayout({
+  children,
+  title,
+  subtitle,
+  esp32Status = null,
+  contentClassName = "",
+}) {
   const isOnline = Boolean(esp32Status?.online);
   const lastSeen = esp32Status?.lastSeen
     ? formatChartTime(esp32Status.lastSeen)
@@ -35,7 +41,7 @@ function MainLayout({ children, title, subtitle, esp32Status = null }) {
           ) : null}
         </header>
 
-        <main className="page-content">{children}</main>
+        <main className={`page-content ${contentClassName}`.trim()}>{children}</main>
       </div>
     </div>
   );
