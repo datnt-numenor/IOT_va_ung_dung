@@ -14,8 +14,7 @@ CREATE TABLE IF NOT EXISTS sensors (
   type VARCHAR(30) NOT NULL,
   unit VARCHAR(10) NOT NULL,
   mqtt_topic VARCHAR(150) NOT NULL,
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  CONSTRAINT chk_sensor_type CHECK (type IN ('temperature', 'humidity', 'light'))
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS devices (

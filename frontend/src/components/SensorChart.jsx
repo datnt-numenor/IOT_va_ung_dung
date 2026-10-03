@@ -7,11 +7,7 @@ import {
   YAxis,
 } from "recharts";
 
-const series = [
-  { key: "temperature", label: "Nhiệt độ", unit: "°C", color: "#f97316" },
-  { key: "humidity", label: "Độ ẩm", unit: "%", color: "#06b6d4" },
-  { key: "light", label: "Ánh sáng", unit: "ADC", color: "#2563eb" },
-];
+import { getSensorStyle } from "../config/presentation";
 
 function getDomain(data, key) {
   const values = data.map((item) => Number(item[key])).filter(Number.isFinite);
@@ -20,8 +16,7 @@ function getDomain(data, key) {
   const minimum = Math.min(...values);
   const maximum = Math.max(...values);
   const span = maximum - minimum;
-  const fallbackPadding = key === "temperature" ? 1 : key === "humidity" ? 2 : 50;
-  const padding = span > 0 ? Math.max(span * 0.2, fallbackPadding * 0.25) : fallbackPadding;
+  const padding = span > 0 ? Math.max(span * 0.2, Math.abs(maximum) * 0.01) : Math.max(Math.abs(maximum) * 0.05, 1);
   return [minimum - padding, maximum + padding];
 }
 
@@ -32,7 +27,14 @@ function getLatestValue(data, key) {
   return "—";
 }
 
-function SensorChart({ data }) {
+function SensorChart({ data, sensors }) {
+  const series = sensors.map((sensor) => ({
+    key: sensor.type,
+    label: sensor.name,
+    unit: sensor.unit,
+    color: getSensorStyle(sensor.type).color,
+  }));
+
   if (!data.length) {
     return <div className="sensor-chart-empty">Đang chờ dữ liệu cảm biến...</div>;
   }

@@ -1,12 +1,16 @@
 const sensorService = require("../services/sensorService");
 const esp32PresenceService = require("../services/esp32PresenceService");
-const { positiveInteger, enumValue, parseSort } = require("../utils/query");
+const { positiveInteger, parseSort } = require("../utils/query");
 const HttpError = require("../utils/httpError");
 
 const sortColumns = {
   id: "sd.id", sensorType: "s.type", value: "sd.value",
   unit: "s.unit", measuredAt: "sd.measured_at",
 };
+
+async function listSensors(req, res) {
+  res.json({ data: await sensorService.listSensors() });
+}
 
 async function getRealtime(req, res) {
   res.json(await sensorService.getRealtime());
@@ -27,8 +31,7 @@ async function getChart(req, res) {
 }
 
 async function getHistory(req, res) {
-  const field = enumValue(req.query.field,
-    ["all", "time", "temperature", "humidity", "light"], "field", "all");
+  const field = String(req.query.field || "all");
   const page = positiveInteger(req.query.page, 1, "page");
   const size = positiveInteger(req.query.size, 10, "size", 100);
   const sort = parseSort(req.query.sort, sortColumns, "id", "DESC");
@@ -38,4 +41,4 @@ async function getHistory(req, res) {
   }));
 }
 
-module.exports = { getRealtime, getEsp32Status, getChart, getHistory };
+module.exports = { listSensors, getRealtime, getEsp32Status, getChart, getHistory };

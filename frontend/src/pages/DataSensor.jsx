@@ -3,18 +3,13 @@ import { apiRequest } from "../api/client";
 import MainLayout from "../components/MainLayout";
 import { formatDateTime } from "../utils/dateTime";
 
-const sensorLabels = {
-  temperature: "Nhiệt độ",
-  humidity: "Độ ẩm",
-  light: "Ánh sáng",
-};
 const sortFields = { id: "id", sensorType: "sensorType", value: "value", measuredAt: "measuredAt" };
 
 function DataSensor() {
   const [search, setSearch] = useState("");
   const [searchField, setSearchField] = useState("all");
   const [appliedSearch, setAppliedSearch] = useState({ field: "all", keyword: "" });
-  const [searchMode, setSearchMode] = useState("all");
+  const [sensors, setSensors] = useState([]);
   const [sortKey, setSortKey] = useState("id");
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,6 +18,12 @@ function DataSensor() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiRequest("/sensors")
+      .then((result) => setSensors(result.data))
+      .catch((requestError) => setError(requestError.message));
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -54,19 +55,7 @@ function DataSensor() {
 
   function handleSearch(event) {
     event.preventDefault();
-    const keyword = search.trim();
-    if (searchMode === "field" && searchField !== "all") {
-      setAppliedSearch({ field: searchField, keyword: "" });
-      setSearch("");
-    } else if (keyword) {
-      setAppliedSearch({ field: "all", keyword });
-      setSearchField("all");
-      setSearchMode("keyword");
-    } else {
-      setAppliedSearch({ field: "all", keyword: "" });
-      setSearchField("all");
-      setSearchMode("all");
-    }
+    setAppliedSearch({ field: searchField, keyword: search.trim() });
     setCurrentPage(1);
   }
 
@@ -77,6 +66,7 @@ function DataSensor() {
     return [currentPage - 1, currentPage, currentPage + 1];
   }
 
+  const sensorNames = Object.fromEntries(sensors.map((sensor) => [sensor.type, sensor.name]));
   const startIndex = totalElements ? (currentPage - 1) * rowsPerPage + 1 : 0;
   const endIndex = Math.min(currentPage * rowsPerPage, totalElements);
   const sortMark = (key) => sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
@@ -90,21 +80,11 @@ function DataSensor() {
             <input type="text"
               placeholder={searchField === "time" ? "YYYY-MM-DD HH:mm:ss" : "Nhập giá trị cần tìm..."}
               value={search}
-              onChange={(event) => {
-                const value = event.target.value;
-                setSearch(value);
-                setSearchMode(value.trim() ? "keyword" : searchField === "all" ? "all" : "field");
-              }} />
-            <select value={searchField} onChange={(event) => {
-              const value = event.target.value;
-              setSearchField(value);
-              setSearchMode(value === "all" ? (search.trim() ? "keyword" : "all") : "field");
-            }}>
+              onChange={(event) => setSearch(event.target.value)} />
+            <select value={searchField} onChange={(event) => setSearchField(event.target.value)}>
               <option value="all">Tất cả</option>
               <option value="time">Thời gian</option>
-              <option value="temperature">Nhiệt độ</option>
-              <option value="humidity">Độ ẩm</option>
-              <option value="light">Ánh sáng</option>
+              {sensors.map((sensor) => <option key={sensor.id} value={sensor.type}>{sensor.name}</option>)}
             </select>
             <button type="submit" className="primary-button">Tìm kiếm</button>
           </form>
@@ -127,7 +107,7 @@ function DataSensor() {
               </tr></thead>
               <tbody>
                 {data.map((item) => <tr key={item.id}>
-                  <td>#{item.id}</td><td>{sensorLabels[item.sensorType] || item.sensorType}</td>
+                  <td>#{item.id}</td><td>{sensorNames[item.sensorType] || item.sensorType}</td>
                   <td>{item.value}</td><td>{item.unit}</td><td>{formatDateTime(item.measuredAt)}</td>
                 </tr>)}
               </tbody>

@@ -3,7 +3,18 @@ const HttpError = require("../utils/httpError");
 const { toIsoUtc } = require("../utils/query");
 const socketHub = require("../realtime/socketHub");
 
-const SENSOR_TYPES = ["temperature", "humidity", "light"];
+const DEFAULT_SENSOR_TYPES = ["temperature", "humidity", "light"];
+
+async function listSensors() {
+  const [rows] = await db.execute(
+    "SELECT id, code, name, type, unit FROM sensors ORDER BY id",
+  );
+  return rows;
+}
+
+async function getSensorTypes() {
+  return (await listSensors()).map((sensor) => sensor.type);
+}
 
 function mapSensorRow(row) {
   return {
@@ -26,8 +37,7 @@ async function getRealtime() {
       WHERE latest.sensor_id = s.id
       ORDER BY latest.measured_at DESC, latest.id DESC LIMIT 1
     )
-    WHERE s.type IN ('temperature', 'humidity', 'light')
-    ORDER BY FIELD(s.type, 'temperature', 'humidity', 'light')
+    ORDER BY s.id
   `);
   const data = rows.map(mapSensorRow);
   const timestamp = data.reduce(
@@ -38,8 +48,9 @@ async function getRealtime() {
 }
 
 async function getChart({ from, to, limit }) {
-  const series = { temperature: [], humidity: [], light: [] };
-  await Promise.all(SENSOR_TYPES.map(async (type) => {
+  const sensorTypes = await getSensorTypes();
+  const series = Object.fromEntries(sensorTypes.map((type) => [type, []]));
+  await Promise.all(sensorTypes.map(async (type) => {
     const conditions = ["s.type = ?"];
     const values = [type];
     if (from) { conditions.push("sd.measured_at >= ?"); values.push(from); }
@@ -62,22 +73,27 @@ async function getChart({ from, to, limit }) {
 async function getHistory({ field, keyword, page, size, sortColumn, sortDirection }) {
   const conditions = [];
   const values = [];
-  if (keyword) {
-    if (field === "time") {
+  const sensorTypes = await getSensorTypes();
+  if (field !== "all" && field !== "time" && !sensorTypes.includes(field)) {
+    throw new HttpError(400, `Unsupported field: ${field}`);
+  }
+  if (field === "time") {
+    if (keyword) {
       conditions.push("DATE_FORMAT(CONVERT_TZ(sd.measured_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?");
       values.push(`${keyword}%`);
-    } else if (SENSOR_TYPES.includes(field)) {
-      conditions.push("s.type = ?");
-      values.push(field);
-    } else {
-      conditions.push(`(s.type LIKE ? OR s.name LIKE ? OR CAST(sd.value AS CHAR) LIKE ?
-        OR DATE_FORMAT(CONVERT_TZ(sd.measured_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?)`);
-      const pattern = `%${keyword}%`;
-      values.push(pattern, pattern, pattern, pattern);
     }
-  } else if (SENSOR_TYPES.includes(field)) {
+  } else if (field !== "all") {
     conditions.push("s.type = ?");
     values.push(field);
+    if (keyword) {
+      conditions.push("CAST(sd.value AS CHAR) LIKE ?");
+      values.push(`${keyword}%`);
+    }
+  } else if (keyword) {
+    conditions.push(`(s.type LIKE ? OR s.name LIKE ? OR CAST(sd.value AS CHAR) LIKE ?
+      OR DATE_FORMAT(CONVERT_TZ(sd.measured_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?)`);
+    const pattern = `%${keyword}%`;
+    values.push(pattern, pattern, pattern, pattern);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -101,13 +117,13 @@ async function getHistory({ field, keyword, page, size, sortColumn, sortDirectio
   };
 }
 
-function normalizePayload(payload) {
+function normalizePayload(payload, sensorTypes = DEFAULT_SENSOR_TYPES) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new HttpError(400, "Sensor payload must be an object");
   }
   const measuredAt = payload.timestamp ? new Date(payload.timestamp) : new Date();
   if (Number.isNaN(measuredAt.getTime())) throw new HttpError(400, "Invalid sensor timestamp");
-  const readings = SENSOR_TYPES.flatMap((type) => {
+  const readings = sensorTypes.flatMap((type) => {
     if (payload[type] === undefined) return [];
     const value = Number(payload[type]);
     if (!Number.isFinite(value)) throw new HttpError(400, `${type} must be numeric`);
@@ -118,7 +134,7 @@ function normalizePayload(payload) {
 }
 
 async function ingestSensorPayload(payload) {
-  const { measuredAt, readings } = normalizePayload(payload);
+  const { measuredAt, readings } = normalizePayload(payload, await getSensorTypes());
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -153,4 +169,4 @@ async function ingestSensorPayload(payload) {
   }
 }
 
-module.exports = { getRealtime, getChart, getHistory, normalizePayload, ingestSensorPayload };
+module.exports = { listSensors, getRealtime, getChart, getHistory, normalizePayload, ingestSensorPayload };

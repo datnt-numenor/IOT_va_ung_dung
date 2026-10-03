@@ -1,4 +1,5 @@
 function DeviceControl({ name, status, onToggle, icon }) {
+  const isUnknown = !status;
   const isLoading = status === "LOADING";
   const isOn = status === "ON";
 
@@ -11,8 +12,8 @@ function DeviceControl({ name, status, onToggle, icon }) {
           <h3>{name}</h3>
 
           <div className="device-status-row">
-            <span className={`device-status ${status.toLowerCase()}`}>
-              {status}
+            <span className={`device-status ${(status || "unknown").toLowerCase()}`}>
+              {status || "—"}
             </span>
 
             {isLoading && <span className="loading-dot">◌</span>}
@@ -23,7 +24,7 @@ function DeviceControl({ name, status, onToggle, icon }) {
       <button
         className={`toggle-switch ${isOn ? "on" : ""}`}
         onClick={onToggle}
-        disabled={isLoading}
+        disabled={isLoading || isUnknown}
         aria-label={`${isOn ? "Tắt" : "Bật"} ${name}`}
       >
         <span className="toggle-thumb" />

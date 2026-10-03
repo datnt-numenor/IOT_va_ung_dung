@@ -8,7 +8,7 @@ function errorHandler(error, req, res, next) {
   const status = error.status || 500;
   if (status >= 500) console.error(error);
 
-  const response = { message: status >= 500 ? "Internal server error" : error.message };
+  const response = { message: status >= 500 && error.name !== "HttpError" ? "Internal server error" : error.message };
   if (error.details !== undefined) response.details = error.details;
   res.status(status).json(response);
 }

@@ -17,10 +17,17 @@ function ActionHistory() {
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [devices, setDevices] = useState([]);
   const [data, setData] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiRequest("/devices")
+      .then((result) => setDevices(result.data))
+      .catch((requestError) => setError(requestError.message));
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,8 +89,8 @@ function ActionHistory() {
             <input type="text" placeholder="YYYY-MM-DD HH:mm" value={filters.time}
               onChange={(event) => updateFilter("time", event.target.value)} />
             <select value={filters.deviceId} onChange={(event) => updateFilter("deviceId", event.target.value)}>
-              <option value="">Tất cả thiết bị</option><option value="1">Đèn phòng</option>
-              <option value="2">Quạt thông gió</option><option value="3">Điều hòa</option>
+              <option value="">Tất cả thiết bị</option>
+              {devices.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}
             </select>
             <select value={filters.action} onChange={(event) => updateFilter("action", event.target.value)}>
               <option value="">Action: Tất cả</option><option value="ON">Bật</option><option value="OFF">Tắt</option>

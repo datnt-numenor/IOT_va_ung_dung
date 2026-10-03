@@ -1,30 +1,16 @@
 import { useEffect, useState } from "react";
-import {
-  Droplets,
-  Fan,
-  Lightbulb,
-  Snowflake,
-  Sun,
-  Thermometer,
-} from "lucide-react";
-
 import { apiRequest } from "../api/client";
 import { socket } from "../api/socket";
 import DeviceControl from "../components/DeviceControl";
 import MainLayout from "../components/MainLayout";
 import SensorCard from "../components/SensorCard";
 import SensorChart from "../components/SensorChart";
+import { CHART_POINTS, getDeviceIcon, getSensorStyle } from "../config/presentation";
 import { formatChartTime } from "../utils/dateTime";
 
-const devices = [
-  { id: 1, key: "light", name: "Đèn phòng", icon: Lightbulb },
-  { id: 2, key: "fan", name: "Quạt thông gió", icon: Fan },
-  { id: 3, key: "ac", name: "Điều hòa", icon: Snowflake },
-];
-
-function mergeChartSeries(series) {
+function mergeChartSeries(series, types) {
   const points = new Map();
-  for (const type of ["temperature", "humidity", "light"]) {
+  for (const type of types) {
     for (const item of series[type] || []) {
       const point = points.get(item.time) || { timestamp: item.time };
       point[type] = item.value;
@@ -37,17 +23,11 @@ function mergeChartSeries(series) {
 }
 
 function Dashboard() {
-  const [sensorValues, setSensorValues] = useState({
-    temperature: "—",
-    humidity: "—",
-    light: "—",
-  });
+  const [sensors, setSensors] = useState([]);
+  const [devices, setDevices] = useState([]);
+  const [sensorValues, setSensorValues] = useState({});
   const [chartData, setChartData] = useState([]);
-  const [deviceStatus, setDeviceStatus] = useState({
-    light: "OFF",
-    fan: "OFF",
-    ac: "OFF",
-  });
+  const [deviceStatus, setDeviceStatus] = useState({});
   const [esp32Status, setEsp32Status] = useState({
     online: false,
     lastSeen: null,
@@ -59,28 +39,21 @@ function Dashboard() {
 
     async function loadDashboard() {
       try {
-        const [realtime, chart, presence, ...statuses] = await Promise.all([
-          apiRequest("/sensors/realtime", { signal: controller.signal }),
-          apiRequest("/sensor-data/chart?limit=20", { signal: controller.signal }),
-          apiRequest("/sensors/status", { signal: controller.signal }),
-          ...devices.map((device) =>
-            apiRequest(`/devices/${device.id}/status`, { signal: controller.signal }),
-          ),
+        const [sensorList, deviceList] = await Promise.all([
+          apiRequest("/sensors", { signal: controller.signal }),
+          apiRequest("/devices", { signal: controller.signal }),
         ]);
-        setSensorValues((current) => {
-          const next = { ...current };
-          realtime.data.forEach((item) => { next[item.sensorType] = item.value; });
-          return next;
-        });
-        setChartData(mergeChartSeries(chart.series));
+        const [realtime, chart, presence] = await Promise.all([
+          apiRequest("/sensors/realtime", { signal: controller.signal }),
+          apiRequest(`/sensor-data/chart?limit=${CHART_POINTS}`, { signal: controller.signal }),
+          apiRequest("/sensors/status", { signal: controller.signal }),
+        ]);
+        setSensors(sensorList.data);
+        setDevices(deviceList.data);
+        setSensorValues(Object.fromEntries(realtime.data.map((item) => [item.sensorType, item.value])));
+        setChartData(mergeChartSeries(chart.series, sensorList.data.map((sensor) => sensor.type)));
         setEsp32Status(presence);
-        setDeviceStatus((current) => {
-          const next = { ...current };
-          statuses.forEach((status, index) => {
-            next[devices[index].key] = status.currentStatus;
-          });
-          return next;
-        });
+        setDeviceStatus(Object.fromEntries(deviceList.data.map((device) => [device.id, device.currentStatus])));
         setError("");
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -96,32 +69,28 @@ function Dashboard() {
       setChartData((current) => {
         const point = { timestamp: event.timestamp, time: formatChartTime(event.timestamp) };
         event.data.forEach((item) => { point[item.sensorType] = item.value; });
-        return [...current, point].slice(-20);
+        return [...current, point].slice(-CHART_POINTS);
       });
     }
 
     async function refreshDevice(deviceId) {
-      const device = devices.find((item) => item.id === deviceId);
-      if (!device) return;
       try {
         const result = await apiRequest(`/devices/${deviceId}/status`);
-        setDeviceStatus((current) => ({ ...current, [device.key]: result.currentStatus }));
+        setDeviceStatus((current) => ({ ...current, [deviceId]: result.currentStatus }));
       } catch (requestError) {
         setError(requestError.message);
       }
     }
 
     function handleDeviceUpdate(event) {
-      const device = devices.find((item) => item.id === event.deviceId);
-      if (!device) return;
       if (event.status === "FAILED") {
-        setError(`Thiết bị ${device.name} không phản hồi`);
+        setError(`Thiết bị #${event.deviceId} không phản hồi`);
         refreshDevice(event.deviceId);
         return;
       }
       setDeviceStatus((current) => ({
         ...current,
-        [device.key]: event.currentStatus || event.status,
+        [event.deviceId]: event.currentStatus || event.status,
       }));
       setError("");
     }
@@ -130,14 +99,20 @@ function Dashboard() {
       setEsp32Status(status);
     }
 
+    function handleReconnect() {
+      loadDashboard();
+    }
+
     loadDashboard();
     socket.connect();
+    socket.on("connect", handleReconnect);
     socket.on("sensor:update", handleSensorUpdate);
     socket.on("device:update", handleDeviceUpdate);
     socket.on("esp32:status", handleEsp32Status);
 
     return () => {
       controller.abort();
+      socket.off("connect", handleReconnect);
       socket.off("sensor:update", handleSensorUpdate);
       socket.off("device:update", handleDeviceUpdate);
       socket.off("esp32:status", handleEsp32Status);
@@ -146,10 +121,10 @@ function Dashboard() {
   }, []);
 
   async function handleToggleDevice(device) {
-    const currentStatus = deviceStatus[device.key];
-    if (currentStatus === "LOADING") return;
+    const currentStatus = deviceStatus[device.id];
+    if (!currentStatus || currentStatus === "LOADING") return;
     const action = currentStatus === "ON" ? "OFF" : "ON";
-    setDeviceStatus((current) => ({ ...current, [device.key]: "LOADING" }));
+    setDeviceStatus((current) => ({ ...current, [device.id]: "LOADING" }));
     setError("");
     try {
       await apiRequest(`/devices/${device.id}/actions`, {
@@ -157,7 +132,7 @@ function Dashboard() {
         body: JSON.stringify({ action }),
       });
     } catch (requestError) {
-      setDeviceStatus((current) => ({ ...current, [device.key]: currentStatus }));
+      setDeviceStatus((current) => ({ ...current, [device.id]: currentStatus }));
       setError(requestError.message);
     }
   }
@@ -173,22 +148,22 @@ function Dashboard() {
         {error ? <div className="api-error" role="alert">{error}</div> : null}
 
         <div className="sensor-grid">
-          <SensorCard title="NHIỆT ĐỘ" value={sensorValues.temperature} unit="°C"
-            icon={<Thermometer size={24} strokeWidth={2} />} type="temperature"
-            isLive={esp32Status.online} lastSeen={esp32Status.lastSeen} />
-          <SensorCard title="ĐỘ ẨM" value={sensorValues.humidity} unit="%"
-            icon={<Droplets size={24} strokeWidth={2} />} type="humidity"
-            isLive={esp32Status.online} lastSeen={esp32Status.lastSeen} />
-          <SensorCard title="ÁNH SÁNG" value={sensorValues.light} unit="ADC"
-            icon={<Sun size={24} strokeWidth={2} />} type="light"
-            isLive={esp32Status.online} lastSeen={esp32Status.lastSeen} />
+          {sensors.map((sensor) => {
+            const Icon = getSensorStyle(sensor.type).icon;
+            return (
+              <SensorCard key={sensor.id} title={sensor.name.toUpperCase()}
+                value={sensorValues[sensor.type] ?? "—"} unit={sensor.unit}
+                icon={<Icon size={24} strokeWidth={2} />} type={sensor.type}
+                isLive={esp32Status.online} lastSeen={esp32Status.lastSeen} />
+            );
+          })}
         </div>
 
         <div className="dashboard-main-row">
           <div className="dashboard-chart-panel">
             <h2>Dữ liệu cảm biến thời gian thực</h2>
             <p className="dashboard-chart-subtitle">Ba thang đo độc lập, cập nhật trực tiếp từ ESP32</p>
-            <SensorChart data={chartData} />
+            <SensorChart data={chartData} sensors={sensors} />
           </div>
 
           <div className="device-panel">
@@ -196,10 +171,10 @@ function Dashboard() {
             <p className="device-panel-subtitle">Trạng thái phản hồi từ ESP32</p>
             <div className="device-list">
               {devices.map((device) => {
-                const Icon = device.icon;
+                const Icon = getDeviceIcon(device.type);
                 return (
                   <DeviceControl key={device.id} name={device.name}
-                    status={deviceStatus[device.key]}
+                    status={deviceStatus[device.id]}
                     onToggle={() => handleToggleDevice(device)}
                     icon={<Icon size={22} strokeWidth={2} />} />
                 );

@@ -20,12 +20,32 @@ async function getDeviceStatus(deviceId) {
   return { ...device, updatedAt: toIsoUtc(device.updatedAt) };
 }
 
+async function listDevices() {
+  const [rows] = await db.execute(
+    `SELECT id, code, name, type, current_status AS currentStatus, updated_at AS updatedAt
+     FROM devices ORDER BY id`,
+  );
+  return rows.map((device) => ({ ...device, updatedAt: toIsoUtc(device.updatedAt) }));
+}
+
+// Last state confirmed by the ESP32; used to restore the device when a command fails.
+async function lastConfirmedStatus(connection, deviceId) {
+  const [[row]] = await connection.execute(
+    `SELECT status FROM action_history
+     WHERE device_id = ? AND status IN ('ON', 'OFF')
+     ORDER BY id DESC LIMIT 1`,
+    [deviceId],
+  );
+  return row ? row.status : "OFF";
+}
+
 async function markFailed(actionId, deviceId) {
   const connection = await db.getConnection();
-  let changed = false;
+  let restored = null;
 
   try {
     await connection.beginTransaction();
+    await connection.execute("SELECT id FROM devices WHERE id = ? FOR UPDATE", [deviceId]);
     const [result] = await connection.execute(
       `UPDATE action_history
        SET status = 'FAILED', completed_at = UTC_TIMESTAMP(3)
@@ -33,13 +53,13 @@ async function markFailed(actionId, deviceId) {
       [actionId, deviceId],
     );
 
-    changed = result.affectedRows > 0;
-    if (changed) {
+    if (result.affectedRows > 0) {
+      restored = await lastConfirmedStatus(connection, deviceId);
       await connection.execute(
         `UPDATE devices
-         SET current_status = 'FAILED', updated_at = UTC_TIMESTAMP(3)
-         WHERE id = ?`,
-        [deviceId],
+         SET current_status = ?, updated_at = UTC_TIMESTAMP(3)
+         WHERE id = ? AND current_status = 'LOADING'`,
+        [restored, deviceId],
       );
     }
     await connection.commit();
@@ -51,8 +71,8 @@ async function markFailed(actionId, deviceId) {
   }
 
   pendingTimeouts.delete(actionId);
-  if (changed) {
-    socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: "FAILED", status: "FAILED" });
+  if (restored) {
+    socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: restored, status: "FAILED" });
   }
 }
 
@@ -64,13 +84,14 @@ async function controlDevice({ deviceId, action, userId }) {
   try {
     await connection.beginTransaction();
     const [[device]] = await connection.execute(
-      `SELECT id, command_topic AS commandTopic
+      `SELECT id, command_topic AS commandTopic, current_status AS currentStatus
        FROM devices
        WHERE id = ?
        FOR UPDATE`,
       [deviceId],
     );
     if (!device) throw new HttpError(404, `Device not found: ${deviceId}`);
+    if (device.currentStatus === "LOADING") throw new HttpError(409, "Device is busy");
 
     const [history] = await connection.execute(
       `INSERT INTO action_history (user_id, device_id, action, status, requested_at)
@@ -89,6 +110,7 @@ async function controlDevice({ deviceId, action, userId }) {
     await connection.commit();
   } catch (error) {
     await connection.rollback();
+    if (error.code === "ER_NO_REFERENCED_ROW_2") throw new HttpError(400, `Unknown user: ${userId}`);
     throw error;
   } finally {
     connection.release();
@@ -123,6 +145,7 @@ async function handleDeviceStatus(deviceId, payload) {
     throw new Error(`Unsupported device status: ${status || "empty"}`);
   }
 
+  let currentStatus;
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -132,22 +155,34 @@ async function handleDeviceStatus(deviceId, payload) {
     );
     if (!device) throw new Error(`Device not found: ${deviceId}`);
 
-    const [history] = await connection.execute(
-      `UPDATE action_history
-       SET status = ?, completed_at = UTC_TIMESTAMP(3)
-       WHERE id = ? AND device_id = ? AND status = 'LOADING'`,
-      [status, actionId, deviceId],
+    // The ESP32 is the source of truth: accept a late confirmation of a FAILED action too.
+    const [[action]] = await connection.execute(
+      "SELECT status FROM action_history WHERE id = ? AND device_id = ? FOR UPDATE",
+      [actionId, deviceId],
     );
-    if (!history.affectedRows) {
-      throw new Error(`Pending action not found: ${actionId}`);
+    if (!action) throw new Error(`Pending action not found: ${actionId}`);
+    if (action.status !== "LOADING" && (action.status !== "FAILED" || status === "FAILED")) {
+      throw new Error(`Action ${actionId} already finished with status ${action.status}`);
     }
 
     await connection.execute(
-      `UPDATE devices
-       SET current_status = ?, updated_at = UTC_TIMESTAMP(3)
-       WHERE id = ?`,
-      [status, deviceId],
+      "UPDATE action_history SET status = ?, completed_at = UTC_TIMESTAMP(3) WHERE id = ?",
+      [status, actionId],
     );
+
+    const [[newer]] = await connection.execute(
+      "SELECT id FROM action_history WHERE device_id = ? AND id > ? LIMIT 1",
+      [deviceId, actionId],
+    );
+    if (newer) {
+      currentStatus = null;
+    } else {
+      currentStatus = status === "FAILED" ? await lastConfirmedStatus(connection, deviceId) : status;
+      await connection.execute(
+        "UPDATE devices SET current_status = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?",
+        [currentStatus, deviceId],
+      );
+    }
     await connection.commit();
   } catch (error) {
     await connection.rollback();
@@ -160,9 +195,10 @@ async function handleDeviceStatus(deviceId, payload) {
   if (timeout) clearTimeout(timeout);
   pendingTimeouts.delete(actionId);
 
-  const event = { actionId, deviceId, currentStatus: status, status };
+  if (currentStatus === null) return { actionId, deviceId, status };
+  const event = { actionId, deviceId, currentStatus, status };
   socketHub.emitDeviceUpdate(event);
   return event;
 }
 
-module.exports = { getDeviceStatus, controlDevice, handleDeviceStatus };
+module.exports = { listDevices, getDeviceStatus, controlDevice, handleDeviceStatus };

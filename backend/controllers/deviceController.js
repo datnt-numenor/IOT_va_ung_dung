@@ -1,6 +1,10 @@
 const deviceService = require("../services/deviceService");
 const { positiveInteger, enumValue } = require("../utils/query");
 
+async function listDevices(req, res) {
+  res.json({ data: await deviceService.listDevices() });
+}
+
 async function getDeviceStatus(req, res) {
   const deviceId = positiveInteger(req.params.deviceId, null, "deviceId");
   res.json(await deviceService.getDeviceStatus(deviceId));
@@ -17,4 +21,4 @@ async function controlDevice(req, res) {
   res.status(202).json(await deviceService.controlDevice({ deviceId, action, userId }));
 }
 
-module.exports = { getDeviceStatus, controlDevice };
+module.exports = { listDevices, getDeviceStatus, controlDevice };
