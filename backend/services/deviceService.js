@@ -76,6 +76,24 @@ async function markFailed(actionId, deviceId) {
   }
 }
 
+// Timeouts live in memory, so anything still LOADING after a restart would stay stuck
+// (switch disabled, every new command answered with 409). Fail it at startup instead.
+async function failStaleActions() {
+  const [actions] = await db.execute(
+    "SELECT id, device_id AS deviceId FROM action_history WHERE status = 'LOADING'",
+  );
+  for (const action of actions) await markFailed(action.id, action.deviceId);
+
+  const [devices] = await db.execute("SELECT id FROM devices WHERE current_status = 'LOADING'");
+  for (const device of devices) {
+    await db.execute(
+      "UPDATE devices SET current_status = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?",
+      [await lastConfirmedStatus(db, device.id), device.id],
+    );
+  }
+  return actions.length;
+}
+
 async function controlDevice({ deviceId, action, userId }) {
   const connection = await db.getConnection();
   let actionId;
@@ -233,4 +251,6 @@ async function handleSyncRequest(payload) {
   }));
 }
 
-module.exports = { listDevices, getDeviceStatus, controlDevice, handleDeviceStatus, handleSyncRequest };
+module.exports = {
+  listDevices, getDeviceStatus, controlDevice, handleDeviceStatus, handleSyncRequest, failStaleActions,
+};

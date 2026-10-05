@@ -28,6 +28,9 @@ async function testDatabaseConnection() {
     console.log("MySQL connected successfully");
 
     connection.release();
+
+    const failed = await deviceService.failStaleActions();
+    if (failed) console.log(`Marked ${failed} stale LOADING action(s) as FAILED`);
   } catch (error) {
     console.error("MySQL connection failed:", error.message);
   }
