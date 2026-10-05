@@ -4,6 +4,8 @@ const { toIsoUtc } = require("../utils/query");
 const socketHub = require("../realtime/socketHub");
 
 const DEFAULT_SENSOR_TYPES = ["temperature", "humidity", "light"];
+// Sanity limits for known sensors; sensor types not listed here are accepted as-is.
+const VALUE_RANGES = { temperature: [-40, 80], humidity: [0, 100], light: [0, 4095] };
 
 async function listSensors() {
   const [rows] = await db.execute(
@@ -127,6 +129,10 @@ function normalizePayload(payload, sensorTypes = DEFAULT_SENSOR_TYPES) {
     if (payload[type] === undefined) return [];
     const value = Number(payload[type]);
     if (!Number.isFinite(value)) throw new HttpError(400, `${type} must be numeric`);
+    const range = VALUE_RANGES[type];
+    if (range && (value < range[0] || value > range[1])) {
+      throw new HttpError(400, `${type} must be between ${range[0]} and ${range[1]}`);
+    }
     return [{ type, value }];
   });
   if (!readings.length) throw new HttpError(400, "Payload has no supported sensor values");

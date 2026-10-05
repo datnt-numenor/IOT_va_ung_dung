@@ -17,3 +17,7 @@ test("rejects MQTT payloads without usable readings", () => {
   assert.throws(() => normalizePayload({ temperature: "bad" }), /numeric/);
   assert.throws(() => normalizePayload({ unknown: 1 }), /no supported/);
 });
+
+test("rejects readings outside the sensor range", () => {
+  assert.throws(() => normalizePayload({ humidity: 500 }), /between 0 and 100/);
+});
