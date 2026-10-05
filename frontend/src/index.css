@@ -224,6 +224,8 @@ p {
   border-radius: 50%;
   font-size: 16px;
   font-weight: 700;
+  object-fit: cover;
+  object-position: center 20%;
 }
 
 .account-info {
@@ -1034,25 +1036,6 @@ p {
   width: 38px;
   height: 38px;
 }
-.profile-edit-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 36px;
-  margin-left: auto;
-  padding: 0 13px;
-  color: #2563eb;
-  background: #f1f6ff;
-  border: 1px solid #e5edfb;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.profile-edit-button:hover {
-  background: #e8f0ff;
-}
 .profile-person {
   display: flex;
   align-items: center;
@@ -1071,6 +1054,8 @@ p {
   box-shadow: 0 16px 34px rgba(37, 99, 235, 0.22);
   font-size: 36px;
   font-weight: 700;
+  object-fit: cover;
+  object-position: center 20%;
 }
 .profile-person-copy {
   min-width: 0;
@@ -1568,6 +1553,9 @@ p {
     grid-template-columns: 360px minmax(0, 1fr);
     gap: 18px;
   }
+  .resource-action {
+    display: none;
+  }
 }
 
 @media (max-width: 980px) {
@@ -1606,9 +1594,6 @@ p {
   }
   .resources-panel {
     padding: 18px;
-  }
-  .profile-edit-button {
-    display: none;
   }
   .profile-section-heading {
     gap: 9px;

@@ -5,7 +5,6 @@ import {
   Hash,
   IdCard,
   Mail,
-  Pencil,
   UserRound,
   UsersRound,
   FileText,
@@ -38,14 +37,10 @@ function Profile() {
               <h2>Hồ sơ cá nhân</h2>
               <p>Thông tin tài khoản và thông tin học phần</p>
             </div>
-            <button className="profile-edit-button" type="button">
-              <Pencil size={14} aria-hidden="true" />
-              Chỉnh sửa
-            </button>
           </div>
 
           <div className="profile-person">
-            <div className="profile-avatar">Đ</div>
+            <img className="profile-avatar" src="/avatar.png" alt="Ảnh Nguyễn Tiến Đạt" />
             <div className="profile-person-copy">
               <h3>Nguyễn Tiến Đạt</h3>
               <strong className="profile-student-id">B23DCCN139</strong>

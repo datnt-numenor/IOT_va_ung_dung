@@ -115,7 +115,7 @@ function Sidebar() {
           aria-expanded={isAccountMenuOpen}
           onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}
         >
-          <span className="account-avatar">Đ</span>
+          <img className="account-avatar" src="/avatar.png" alt="" />
 
           <span className="account-info">
             <strong title={fullName}>{fullName}</strong>

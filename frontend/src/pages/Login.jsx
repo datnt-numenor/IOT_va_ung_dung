@@ -6,6 +6,7 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -17,7 +18,7 @@ function Login() {
       login({ remember });
       navigate("/dashboard", { replace: true });
     } else {
-      alert("Invalid username or password");
+      setError("Tên đăng nhập hoặc mật khẩu không đúng");
     }
   }
 
@@ -45,6 +46,7 @@ function Login() {
       <form className="login-form" onSubmit={handleSubmit}>
         <h1>Đăng nhập</h1>
         <p>Sử dụng tài khoản hệ thống IoT Room</p>
+        {error ? <div className="api-error" role="alert">{error}</div> : null}
 
         <div className="form-group">
           <label htmlFor="username">TÊN ĐĂNG NHẬP</label>
