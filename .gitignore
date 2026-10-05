@@ -31,3 +31,6 @@ dist-ssr
 # Test/build cache
 coverage/
 .vite/
+
+# Mosquitto password file
+backend/mosquitto/passwd
