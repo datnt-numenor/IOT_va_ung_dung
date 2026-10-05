@@ -16,8 +16,14 @@ Wi-Fi/MQTT credentials before uploading. Never commit real credentials.
 Connect each LED through a 220–330 ohm resistor and use a shared GND.
 
 The firmware publishes sensor readings to `iot/sensors/data`, subscribes to
-`iot/devices/+/command`, and acknowledges each command on the matching
-`iot/devices/{id}/status` topic.
+`iot/devices/command` and acknowledges each command on `iot/devices/status`.
+The device is identified by `deviceId` in the payload, so the topics stay the
+same when devices are added.
+
+After every MQTT (re)connect the ESP32 publishes `{"clientId","deviceIds"}` on
+`iot/devices/sync` (retrying every 5 s until all devices are restored). The
+backend replays each device's last known state as a command with
+`"actionId":0` and `"source":"SYNC"`.
 
 The `light` field is the raw 12-bit value returned by `analogRead(GPIO32)`, so
 its unit is `ADC` and its nominal range is `0` to `4095`. It is not a lux value;
