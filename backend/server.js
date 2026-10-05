@@ -41,6 +41,7 @@ mqttService.startMqtt({
     return event;
   },
   onDeviceStatus: deviceService.handleDeviceStatus,
+  onSyncRequest: deviceService.handleSyncRequest,
 });
 
 server.listen(PORT, () => {

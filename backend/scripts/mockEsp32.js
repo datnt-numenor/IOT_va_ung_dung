@@ -3,6 +3,9 @@ const mqtt = require("mqtt");
 const brokerUrl = process.env.MQTT_URL || "mqtt://127.0.0.1:1883";
 const client = mqtt.connect(brokerUrl, { clientId: `mock-esp32-${process.pid}` });
 const deviceStatus = new Map([[1, "OFF"], [2, "OFF"], [3, "OFF"]]);
+const TOPIC_COMMAND = process.env.MQTT_COMMAND_TOPIC || "iot/devices/command";
+const TOPIC_STATUS = process.env.MQTT_STATUS_TOPIC || "iot/devices/status";
+const TOPIC_SYNC = process.env.MQTT_SYNC_TOPIC || "iot/devices/sync";
 let sample = 0;
 
 function publishSensors() {
@@ -17,22 +20,28 @@ function publishSensors() {
 
 client.on("connect", () => {
   console.log(`Mock ESP32 connected to ${brokerUrl}`);
-  client.subscribe("iot/devices/+/command");
+  client.subscribe(TOPIC_COMMAND);
+  // Like the real firmware: ask the backend to replay the last known device states.
+  client.publish(TOPIC_SYNC, JSON.stringify({
+    clientId: "mock-esp32",
+    deviceIds: [...deviceStatus.keys()],
+  }), { qos: 1 });
   publishSensors();
 });
 
 client.on("message", (topic, buffer) => {
-  const match = topic.match(/^iot\/devices\/(\d+)\/command$/);
-  if (!match) return;
+  if (topic !== TOPIC_COMMAND) return;
   try {
-    const deviceId = Number(match[1]);
     const command = JSON.parse(buffer.toString());
-    if (!["ON", "OFF"].includes(command.action)) return;
+    const deviceId = Number(command.deviceId);
+    if (!deviceStatus.has(deviceId) || !["ON", "OFF"].includes(command.action)) return;
     setTimeout(() => {
       deviceStatus.set(deviceId, command.action);
-      client.publish(`iot/devices/${deviceId}/status`, JSON.stringify({
+      client.publish(TOPIC_STATUS, JSON.stringify({
         actionId: command.actionId,
+        deviceId,
         status: command.action,
+        source: command.source || "USER",
       }), { qos: 1 });
       console.log(`Device ${deviceId} acknowledged ${command.action}`);
     }, 300);

@@ -2,7 +2,18 @@ const mqtt = require("mqtt");
 
 let client;
 
-function startMqtt({ onSensorData, onDeviceStatus }) {
+// Three fixed topics; the device is identified by `deviceId` inside the payload.
+function getTopics() {
+  return {
+    sensor: process.env.MQTT_SENSOR_TOPIC || "iot/sensors/data",
+    command: process.env.MQTT_COMMAND_TOPIC || "iot/devices/command",
+    status: process.env.MQTT_STATUS_TOPIC || "iot/devices/status",
+    // ESP32 asks the backend to replay the last known state after (re)connecting.
+    sync: process.env.MQTT_SYNC_TOPIC || "iot/devices/sync",
+  };
+}
+
+function startMqtt({ onSensorData, onDeviceStatus, onSyncRequest }) {
   const brokerUrl = process.env.MQTT_URL;
   if (!brokerUrl) {
     console.warn("MQTT_URL is not configured; MQTT integration is disabled");
@@ -17,10 +28,8 @@ function startMqtt({ onSensorData, onDeviceStatus }) {
   });
 
   client.on("connect", () => {
-    const topics = [
-      process.env.MQTT_SENSOR_TOPIC || "iot/sensors/data",
-      "iot/devices/+/status",
-    ];
+    const { sensor, status, sync } = getTopics();
+    const topics = [sensor, status, sync];
     client.subscribe(topics, (error) => {
       if (error) console.error("MQTT subscribe failed:", error.message);
       else console.log(`MQTT subscribed: ${topics.join(", ")}`);
@@ -30,12 +39,10 @@ function startMqtt({ onSensorData, onDeviceStatus }) {
   client.on("message", async (topic, buffer) => {
     try {
       const payload = JSON.parse(buffer.toString());
-      const sensorTopic = process.env.MQTT_SENSOR_TOPIC || "iot/sensors/data";
-      if (topic === sensorTopic) await onSensorData(payload);
-      else {
-        const match = topic.match(/^iot\/devices\/(\d+)\/status$/);
-        if (match) await onDeviceStatus(Number(match[1]), payload);
-      }
+      const { sensor, status, sync } = getTopics();
+      if (topic === sensor) await onSensorData(payload);
+      else if (topic === status) await onDeviceStatus(payload);
+      else if (topic === sync) await onSyncRequest(payload);
     } catch (error) {
       console.error(`Rejected MQTT message on ${topic}:`, error.message);
     }
@@ -62,4 +69,4 @@ function closeMqtt() {
   });
 }
 
-module.exports = { startMqtt, publish, closeMqtt };
+module.exports = { getTopics, startMqtt, publish, closeMqtt };

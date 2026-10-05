@@ -79,12 +79,11 @@ async function markFailed(actionId, deviceId) {
 async function controlDevice({ deviceId, action, userId }) {
   const connection = await db.getConnection();
   let actionId;
-  let commandTopic;
 
   try {
     await connection.beginTransaction();
     const [[device]] = await connection.execute(
-      `SELECT id, command_topic AS commandTopic, current_status AS currentStatus
+      `SELECT id, current_status AS currentStatus
        FROM devices
        WHERE id = ?
        FOR UPDATE`,
@@ -99,7 +98,6 @@ async function controlDevice({ deviceId, action, userId }) {
       [userId, deviceId, action],
     );
     actionId = history.insertId;
-    commandTopic = device.commandTopic;
 
     await connection.execute(
       `UPDATE devices
@@ -119,7 +117,7 @@ async function controlDevice({ deviceId, action, userId }) {
   socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: "LOADING", status: "LOADING" });
 
   try {
-    await mqttService.publish(commandTopic, { actionId, deviceId, action });
+    await mqttService.publish(mqttService.getTopics().command, { actionId, deviceId, action });
   } catch (error) {
     await markFailed(actionId, deviceId);
     throw new HttpError(503, `Unable to publish device command: ${error.message}`);
@@ -135,7 +133,14 @@ async function controlDevice({ deviceId, action, userId }) {
   return { actionId, deviceId, action, status: "LOADING" };
 }
 
-async function handleDeviceStatus(deviceId, payload) {
+async function handleDeviceStatus(payload) {
+  // Replies to a SYNC replay only restore the LED; they are not user actions.
+  if (payload.source === "SYNC") return null;
+
+  const deviceId = Number(payload.deviceId);
+  if (!Number.isInteger(deviceId) || deviceId < 1) {
+    throw new Error("Device status requires a positive deviceId");
+  }
   const actionId = Number(payload.actionId);
   const status = String(payload.status || "").toUpperCase();
   if (!Number.isInteger(actionId) || actionId < 1) {
@@ -201,4 +206,31 @@ async function handleDeviceStatus(deviceId, payload) {
   return event;
 }
 
-module.exports = { listDevices, getDeviceStatus, controlDevice, handleDeviceStatus };
+const MAX_SYNC_DEVICES = 20;
+
+// ESP32 (re)connected and asks for the last known state of its devices.
+async function handleSyncRequest(payload) {
+  const deviceIds = payload?.deviceIds;
+  if (
+    !Array.isArray(deviceIds) || !deviceIds.length || deviceIds.length > MAX_SYNC_DEVICES
+    || !deviceIds.every((id) => Number.isInteger(id) && id > 0)
+  ) {
+    throw new Error("Sync request requires 1-20 positive integer deviceIds");
+  }
+
+  const [devices] = await db.query(
+    "SELECT id, current_status AS currentStatus FROM devices WHERE id IN (?)",
+    [deviceIds],
+  );
+  await Promise.all(devices.map(async (device) => {
+    // LOADING/FAILED are not physical states; replay the last state the ESP32 confirmed.
+    const action = ["ON", "OFF"].includes(device.currentStatus)
+      ? device.currentStatus
+      : await lastConfirmedStatus(db, device.id);
+    await mqttService.publish(mqttService.getTopics().command, {
+      actionId: 0, deviceId: device.id, action, source: "SYNC",
+    });
+  }));
+}
+
+module.exports = { listDevices, getDeviceStatus, controlDevice, handleDeviceStatus, handleSyncRequest };

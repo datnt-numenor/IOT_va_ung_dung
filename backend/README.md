@@ -43,11 +43,27 @@ Sensor data on `iot/sensors/data`:
 {"timestamp":"2026-08-15T04:20:30Z","temperature":27.4,"humidity":65,"light":420}
 ```
 
-Device response on `iot/devices/{deviceId}/status`:
+Device command on `iot/devices/command` (backend to ESP32; the device is
+identified by `deviceId`, so adding a device does not add a topic):
 
 ```json
-{"actionId":326,"status":"ON"}
+{"actionId":326,"deviceId":1,"action":"ON"}
 ```
+
+Device response on `iot/devices/status`:
+
+```json
+{"actionId":326,"deviceId":1,"status":"ON"}
+```
+
+State sync on `iot/devices/sync`: after (re)connecting, the ESP32 publishes
+`{"clientId":"ESP32_...","deviceIds":[1,2,3]}`. The backend replays the last
+known state of each device on `iot/devices/command` with `"actionId":0` and
+`"source":"SYNC"`; the ESP32 answers on `iot/devices/status` with the same
+`source`, and the backend ignores that reply (no `action_history` row).
+
+Existing databases created before this change must drop the old per-device
+topic columns once: `npm.cmd run db:drop-device-topics`.
 
 Run validation tests with `npm.cmd test`.
 

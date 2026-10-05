@@ -22,8 +22,6 @@ CREATE TABLE IF NOT EXISTS devices (
   code VARCHAR(30) NOT NULL UNIQUE,
   name VARCHAR(100) NOT NULL,
   type VARCHAR(30) NOT NULL,
-  command_topic VARCHAR(150) NOT NULL,
-  status_topic VARCHAR(150) NOT NULL,
   current_status VARCHAR(10) NOT NULL DEFAULT 'OFF',
   updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   CONSTRAINT chk_device_status CHECK (current_status IN ('ON', 'OFF', 'LOADING', 'FAILED'))

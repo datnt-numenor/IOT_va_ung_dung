@@ -10,6 +10,7 @@
     "db:init": "node scripts/runSql.js schema",
     "db:seed": "node scripts/runSql.js seed",
     "db:migrate-legacy": "node scripts/migrateLegacy.js",
+    "db:drop-device-topics": "node scripts/dropDeviceTopicColumns.js",
     "db:fix-timezone": "node scripts/fixTimezone.js",
     "db:normalize-light-unit": "node scripts/normalizeLightUnit.js",
     "e2e:broker": "node scripts/e2eBroker.js",
