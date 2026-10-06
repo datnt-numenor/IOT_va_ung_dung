@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 const http = require("http");
-const { Server } = require("socket.io");
 const db = require("./config/db");
 const createApp = require("./app");
 const sensorService = require("./services/sensorService");
@@ -16,10 +15,10 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
   .map((origin) => origin.trim());
 const app = createApp();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: allowedOrigins },
+socketHub.attachWebSocketServer(server, {
+  path: process.env.WS_PATH || "/ws",
+  allowedOrigins,
 });
-socketHub.setSocketServer(io);
 
 async function testDatabaseConnection() {
   try {
@@ -53,6 +52,7 @@ server.listen(PORT, () => {
 
 async function shutdown(signal) {
   console.log(`${signal} received, shutting down`);
+  await socketHub.closeWebSocketServer();
   server.close();
   esp32PresenceService.close();
   await mqttService.closeMqtt();

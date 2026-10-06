@@ -26,7 +26,7 @@
     "express": "^5.2.1",
     "mqtt": "^5.16.0",
     "mysql2": "^3.24.4",
-    "socket.io": "^4.8.4"
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "aedes": "^1.2.0",
