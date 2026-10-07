@@ -4,7 +4,7 @@ const mysql = require("mysql2/promise");
 
 const COLUMNS = ["command_topic", "status_topic"];
 
-// Devices now share three fixed MQTT topics, so the per-device topic columns are obsolete.
+// Các thiết bị giờ dùng chung ba topic MQTT cố định, nên các cột topic riêng của từng thiết bị không còn cần thiết.
 async function main() {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,

@@ -2,13 +2,13 @@ const mqtt = require("mqtt");
 
 let client;
 
-// Three fixed topics; the device is identified by `deviceId` inside the payload.
+// Ba topic cố định; thiết bị được xác định bằng `deviceId` trong payload.
 function getTopics() {
   return {
     sensor: process.env.MQTT_SENSOR_TOPIC || "iot/sensors/data",
     command: process.env.MQTT_COMMAND_TOPIC || "iot/devices/command",
     status: process.env.MQTT_STATUS_TOPIC || "iot/devices/status",
-    // ESP32 asks the backend to replay the last known state after (re)connecting.
+    // ESP32 yêu cầu backend gửi lại trạng thái cuối sau khi (kết nối lại).
     sync: process.env.MQTT_SYNC_TOPIC || "iot/devices/sync",
   };
 }

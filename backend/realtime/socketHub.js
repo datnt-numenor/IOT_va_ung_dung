@@ -5,7 +5,7 @@ const HEARTBEAT_INTERVAL_MS = 30000;
 let wss;
 let heartbeatTimer;
 
-// Each message is a JSON envelope: { "type": "sensor:update", "data": { ... } }
+// Mỗi tin nhắn là một gói JSON: { "type": "sensor:update", "data": { ... } }
 function broadcast(type, data) {
   if (!wss) return;
   const message = JSON.stringify({ type, data });
@@ -26,11 +26,11 @@ function attachWebSocketServer(httpServer, { path = "/ws", allowedOrigins = [] }
     client.on("pong", () => {
       client.isAlive = true;
     });
-    // Clients only listen; ignore anything they send.
+    // Client chỉ lắng nghe; bỏ qua mọi thứ client gửi lên.
     client.on("message", () => {});
   });
 
-  // Drop connections that stopped answering ping (closed laptop, lost Wi-Fi...).
+  // Ngắt các kết nối không còn trả lời ping (đóng laptop, mất Wi-Fi...).
   heartbeatTimer = setInterval(() => {
     for (const client of wss.clients) {
       if (!client.isAlive) {

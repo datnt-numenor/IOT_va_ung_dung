@@ -73,7 +73,7 @@ async function main() {
     try {
       await connection.rollback();
     } catch {
-      // The transaction may not have started yet.
+      // Transaction có thể chưa kịp bắt đầu.
     }
     throw error;
   } finally {

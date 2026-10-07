@@ -120,7 +120,7 @@ p {
   line-height: 1.25;
 }
 
-/* Sidebar */
+/* Thanh bên */
 .sidebar {
   position: sticky;
   top: 0;
@@ -292,7 +292,7 @@ p {
   outline: none;
 }
 
-/* Header status */
+/* Trạng thái ở thanh tiêu đề */
 .esp32-status {
   display: flex;
   flex-direction: column;
@@ -677,7 +677,7 @@ p {
   font-size: 11px;
 }
 
-/* Filters and tables */
+/* Bộ lọc và bảng dữ liệu */
 .records-page {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -1348,7 +1348,7 @@ p {
   }
 }
 
-/* Login */
+/* Đăng nhập */
 .login-page {
   display: grid;
   grid-template-columns: minmax(420px, 5fr) minmax(560px, 7fr);
@@ -1521,7 +1521,7 @@ p {
   transform: translateY(1px);
 }
 
-/* Responsive */
+/* Giao diện co giãn theo màn hình */
 @media (max-width: 1200px) {
   .page-content {
     padding: 28px;
@@ -1833,7 +1833,7 @@ p {
   }
 }
 
-/* Keep the complete dashboard inside the available desktop/tablet viewport. */
+/* Giữ toàn bộ dashboard nằm gọn trong khung nhìn của máy tính/máy tính bảng. */
 @media (min-width: 721px) and (max-width: 980px) {
   .dashboard-content .sensor-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

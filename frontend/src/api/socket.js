@@ -3,8 +3,8 @@ const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000/ws";
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 10000;
 
-// Small wrapper around the browser WebSocket: event-name routing
-// ({ type, data } envelopes) and automatic reconnect with backoff.
+// Lớp bọc nhỏ quanh WebSocket của trình duyệt: định tuyến theo tên sự kiện
+// (gói { type, data }) và tự kết nối lại với thời gian chờ tăng dần.
 function createRealtimeClient(url) {
   const listeners = new Map();
   let ws = null;
@@ -40,7 +40,7 @@ function createRealtimeClient(url) {
         const { type, data } = JSON.parse(event.data);
         if (type) emitLocal(type, data);
       } catch {
-        // ignore malformed frames
+        // bỏ qua các gói tin sai định dạng
       }
     };
     socket.onclose = () => {

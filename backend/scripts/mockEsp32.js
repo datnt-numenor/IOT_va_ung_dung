@@ -21,7 +21,7 @@ function publishSensors() {
 client.on("connect", () => {
   console.log(`Mock ESP32 connected to ${brokerUrl}`);
   client.subscribe(TOPIC_COMMAND);
-  // Like the real firmware: ask the backend to replay the last known device states.
+  // Giống firmware thật: yêu cầu backend gửi lại trạng thái cuối của các thiết bị.
   client.publish(TOPIC_SYNC, JSON.stringify({
     clientId: "mock-esp32",
     deviceIds: [...deviceStatus.keys()],

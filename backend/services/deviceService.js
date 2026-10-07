@@ -28,7 +28,7 @@ async function listDevices() {
   return rows.map((device) => ({ ...device, updatedAt: toIsoUtc(device.updatedAt) }));
 }
 
-// Last state confirmed by the ESP32; used to restore the device when a command fails.
+// Trạng thái cuối được ESP32 xác nhận; dùng để khôi phục thiết bị khi một lệnh thất bại.
 async function lastConfirmedStatus(connection, deviceId) {
   const [[row]] = await connection.execute(
     `SELECT status FROM action_history
@@ -76,8 +76,8 @@ async function markFailed(actionId, deviceId) {
   }
 }
 
-// Timeouts live in memory, so anything still LOADING after a restart would stay stuck
-// (switch disabled, every new command answered with 409). Fail it at startup instead.
+// Bộ hẹn giờ timeout nằm trong bộ nhớ, nên mọi thứ còn LOADING sau khi khởi động lại sẽ bị kẹt
+// (công tắc bị khóa, mọi lệnh mới đều trả 409). Vì vậy chuyển chúng sang FAILED ngay lúc khởi động.
 async function failStaleActions() {
   const [actions] = await db.execute(
     "SELECT id, device_id AS deviceId FROM action_history WHERE status = 'LOADING'",
@@ -152,7 +152,7 @@ async function controlDevice({ deviceId, action, userId }) {
 }
 
 async function handleDeviceStatus(payload) {
-  // Replies to a SYNC replay only restore the LED; they are not user actions.
+  // Phản hồi của lệnh SYNC chỉ khôi phục LED, không phải thao tác của người dùng.
   if (payload.source === "SYNC") return null;
 
   const deviceId = Number(payload.deviceId);
@@ -178,7 +178,7 @@ async function handleDeviceStatus(payload) {
     );
     if (!device) throw new Error(`Device not found: ${deviceId}`);
 
-    // The ESP32 is the source of truth: accept a late confirmation of a FAILED action too.
+    // ESP32 là nguồn sự thật: chấp nhận cả xác nhận đến muộn của một hành động đã FAILED.
     const [[action]] = await connection.execute(
       "SELECT status FROM action_history WHERE id = ? AND device_id = ? FOR UPDATE",
       [actionId, deviceId],
@@ -226,7 +226,7 @@ async function handleDeviceStatus(payload) {
 
 const MAX_SYNC_DEVICES = 20;
 
-// ESP32 (re)connected and asks for the last known state of its devices.
+// ESP32 vừa (kết nối lại) và xin trạng thái cuối của các thiết bị.
 async function handleSyncRequest(payload) {
   const deviceIds = payload?.deviceIds;
   if (
@@ -241,7 +241,7 @@ async function handleSyncRequest(payload) {
     [deviceIds],
   );
   await Promise.all(devices.map(async (device) => {
-    // LOADING/FAILED are not physical states; replay the last state the ESP32 confirmed.
+    // LOADING/FAILED không phải trạng thái vật lý; gửi lại trạng thái cuối mà ESP32 đã xác nhận.
     const action = ["ON", "OFF"].includes(device.currentStatus)
       ? device.currentStatus
       : await lastConfirmedStatus(db, device.id);

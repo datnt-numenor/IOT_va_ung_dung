@@ -4,7 +4,7 @@ const { toIsoUtc } = require("../utils/query");
 const socketHub = require("../realtime/socketHub");
 
 const DEFAULT_SENSOR_TYPES = ["temperature", "humidity", "light"];
-// Sanity limits for known sensors; sensor types not listed here are accepted as-is.
+// Giới hạn hợp lý cho các cảm biến đã biết; loại cảm biến không có trong danh sách này được chấp nhận nguyên trạng.
 const VALUE_RANGES = { temperature: [-40, 80], humidity: [0, 100], light: [0, 4095] };
 
 async function listSensors() {
