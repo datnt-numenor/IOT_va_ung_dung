@@ -120,9 +120,9 @@ function Profile() {
               />
               <ProfileLink
                 title="Báo cáo cuối kỳ"
-                description="Tài liệu báo cáo dự án"
-                displayUrl="drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_"
-                url="https://drive.google.com/drive/folders/1V76T7YQR2wumaZ4Im_FXeh-kUrDeRGp_?usp=drive_link"
+                description="File báo cáo PDF của dự án"
+                displayUrl="drive.google.com/file/d/15v10A0A4n1YwmcCcHGvutVhIdnlVpYrk"
+                url="https://drive.google.com/file/d/15v10A0A4n1YwmcCcHGvutVhIdnlVpYrk/view"
                 brand="googledrive"
               />
             </div>
