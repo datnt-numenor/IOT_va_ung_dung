@@ -114,8 +114,8 @@ function Profile() {
               <ProfileLink
                 title="Postman API"
                 description="Bộ sưu tập API trên Postman"
-                displayUrl="datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung"
-                url="https://datksnb2005-6044344.postman.co/workspace/IoT-va-ung-dung~8f049eba-e674-4ad6-b92b-eeb56e32e5b3/collection/57506128-01b6ee5c-0446-46fb-a27b-e30500a01c7f?action=share&source=copy-link&creator=57506128"
+                displayUrl="postman.com/datksnb2005-6044344/workspace/iot-va-ung-dung"
+                url="https://www.postman.com/datksnb2005-6044344/workspace/iot-va-ung-dung/collection/57506128-01b6ee5c-0446-46fb-a27b-e30500a01c7f"
                 brand="postman"
               />
               <ProfileLink
