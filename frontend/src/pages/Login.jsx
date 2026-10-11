@@ -33,8 +33,8 @@ function Login() {
         <div className="login-hero-copy">
           <h1>Giám sát phòng học thông minh và trực quan</h1>
           <p>
-            Theo dõi nhiệt độ, độ ẩm, ánh sáng và điều khiển thiết bị qua
-            ESP32 theo thời gian thực.
+            Theo dõi nhiệt độ, độ ẩm, ánh sáng và điều khiển thiết bị qua ESP32
+            theo thời gian thực.
           </p>
         </div>
 
@@ -46,7 +46,11 @@ function Login() {
       <form className="login-form" onSubmit={handleSubmit}>
         <h1>Đăng nhập</h1>
         <p>Sử dụng tài khoản hệ thống IoT Room</p>
-        {error ? <div className="api-error" role="alert">{error}</div> : null}
+        {error ? (
+          <div className="api-error" role="alert">
+            {error}
+          </div>
+        ) : null}
 
         <div className="form-group">
           <label htmlFor="username">TÊN ĐĂNG NHẬP</label>

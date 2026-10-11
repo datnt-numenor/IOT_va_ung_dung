@@ -123,7 +123,9 @@ function Sidebar() {
           </span>
 
           <ChevronDown
-            className={isAccountMenuOpen ? "account-chevron open" : "account-chevron"}
+            className={
+              isAccountMenuOpen ? "account-chevron open" : "account-chevron"
+            }
             size={14}
           />
         </button>

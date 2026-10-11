@@ -22,7 +22,9 @@ function SensorCard({ title, value, unit, icon, type, isLive, lastSeen }) {
       </div>
 
       <div className="sensor-card-footer">
-        <span>{isLive ? "Đang nhận dữ liệu từ ESP32" : "Không có tín hiệu mới"}</span>
+        <span>
+          {isLive ? "Đang nhận dữ liệu từ ESP32" : "Không có tín hiệu mới"}
+        </span>
         <time dateTime={lastSeen || undefined}>{updatedAt}</time>
       </div>
     </article>

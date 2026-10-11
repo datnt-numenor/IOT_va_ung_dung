@@ -32,16 +32,22 @@ function MainLayout({
             >
               <div className="esp32-status-top">
                 <span className="status-dot" aria-hidden="true" />
-                <strong>{isOnline ? "ESP32 đã kết nối" : "ESP32 chưa kết nối"}</strong>
+                <strong>
+                  {isOnline ? "ESP32 đã kết nối" : "ESP32 chưa kết nối"}
+                </strong>
               </div>
               <span>
-                {lastSeen ? `Tín hiệu cuối: ${lastSeen}` : "Đang chờ dữ liệu từ thiết bị"}
+                {lastSeen
+                  ? `Tín hiệu cuối: ${lastSeen}`
+                  : "Đang chờ dữ liệu từ thiết bị"}
               </span>
             </div>
           ) : null}
         </header>
 
-        <main className={`page-content ${contentClassName}`.trim()}>{children}</main>
+        <main className={`page-content ${contentClassName}`.trim()}>
+          {children}
+        </main>
       </div>
     </div>
   );

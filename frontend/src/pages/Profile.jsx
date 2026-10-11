@@ -40,7 +40,11 @@ function Profile() {
           </div>
 
           <div className="profile-person">
-            <img className="profile-avatar" src="/avatar.png" alt="Ảnh Nguyễn Tiến Đạt" />
+            <img
+              className="profile-avatar"
+              src="/avatar.png"
+              alt="Ảnh Nguyễn Tiến Đạt"
+            />
             <div className="profile-person-copy">
               <h3>Nguyễn Tiến Đạt</h3>
               <strong className="profile-student-id">B23DCCN139</strong>
@@ -92,7 +96,9 @@ function Profile() {
               </span>
               <div>
                 <h2>Tài nguyên dự án</h2>
-                <p>Các tài liệu và liên kết phục vụ cho dự án IoT Room Monitoring</p>
+                <p>
+                  Các tài liệu và liên kết phục vụ cho dự án IoT Room Monitoring
+                </p>
               </div>
             </div>
 

@@ -1,4 +1,13 @@
-import { Droplets, Fan, Gauge, Lightbulb, Plug, Snowflake, Sun, Thermometer } from "lucide-react";
+import {
+  Droplets,
+  Fan,
+  Gauge,
+  Lightbulb,
+  Plug,
+  Snowflake,
+  Sun,
+  Thermometer,
+} from "lucide-react";
 
 export const CHART_POINTS = 20;
 

@@ -14,7 +14,10 @@ function broadcast(type, data) {
   }
 }
 
-function attachWebSocketServer(httpServer, { path = "/ws", allowedOrigins = [] } = {}) {
+function attachWebSocketServer(
+  httpServer,
+  { path = "/ws", allowedOrigins = [] } = {},
+) {
   wss = new WebSocketServer({
     server: httpServer,
     path,

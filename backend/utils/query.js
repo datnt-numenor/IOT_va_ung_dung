@@ -1,6 +1,11 @@
 const HttpError = require("./httpError");
 
-function positiveInteger(value, fallback, name, maximum = Number.MAX_SAFE_INTEGER) {
+function positiveInteger(
+  value,
+  fallback,
+  name,
+  maximum = Number.MAX_SAFE_INTEGER,
+) {
   if (value === undefined || value === "") return fallback;
 
   const parsed = Number(value);
@@ -43,7 +48,9 @@ function toIsoUtc(value) {
   if (value instanceof Date) return value.toISOString();
 
   const normalized = String(value).replace(" ", "T");
-  return new Date(/[zZ]|[+-]\d\d:\d\d$/.test(normalized) ? normalized : `${normalized}Z`).toISOString();
+  return new Date(
+    /[zZ]|[+-]\d\d:\d\d$/.test(normalized) ? normalized : `${normalized}Z`,
+  ).toISOString();
 }
 
 module.exports = { positiveInteger, enumValue, parseSort, toIsoUtc };

@@ -3,12 +3,20 @@ import { apiRequest } from "../api/client";
 import MainLayout from "../components/MainLayout";
 import { formatDateTime } from "../utils/dateTime";
 
-const sortFields = { id: "id", sensorType: "sensorType", value: "value", measuredAt: "measuredAt" };
+const sortFields = {
+  id: "id",
+  sensorType: "sensorType",
+  value: "value",
+  measuredAt: "measuredAt",
+};
 
 function DataSensor() {
   const [search, setSearch] = useState("");
   const [searchField, setSearchField] = useState("all");
-  const [appliedSearch, setAppliedSearch] = useState({ field: "all", keyword: "" });
+  const [appliedSearch, setAppliedSearch] = useState({
+    field: "all",
+    keyword: "",
+  });
   const [sensors, setSensors] = useState([]);
   const [sortKey, setSortKey] = useState("id");
   const [sortDirection, setSortDirection] = useState("desc");
@@ -48,8 +56,12 @@ function DataSensor() {
   }, [appliedSearch, currentPage, rowsPerPage, sortKey, sortDirection]);
 
   function handleSort(key) {
-    if (sortKey === key) setSortDirection((direction) => direction === "asc" ? "desc" : "asc");
-    else { setSortKey(key); setSortDirection("asc"); }
+    if (sortKey === key)
+      setSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+    else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
     setCurrentPage(1);
   }
 
@@ -60,33 +72,59 @@ function DataSensor() {
   }
 
   function getVisiblePages() {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+    if (totalPages <= 5)
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
     if (currentPage <= 3) return [1, 2, 3];
-    if (currentPage >= totalPages - 2) return [totalPages - 2, totalPages - 1, totalPages];
+    if (currentPage >= totalPages - 2)
+      return [totalPages - 2, totalPages - 1, totalPages];
     return [currentPage - 1, currentPage, currentPage + 1];
   }
 
-  const sensorNames = Object.fromEntries(sensors.map((sensor) => [sensor.type, sensor.name]));
+  const sensorNames = Object.fromEntries(
+    sensors.map((sensor) => [sensor.type, sensor.name]),
+  );
   const startIndex = totalElements ? (currentPage - 1) * rowsPerPage + 1 : 0;
   const endIndex = Math.min(currentPage * rowsPerPage, totalElements);
-  const sortMark = (key) => sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
+  const sortMark = (key) =>
+    sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
 
   return (
-    <MainLayout title="Data Sensor" subtitle="Tra cứu lịch sử giá trị theo từng loại cảm biến">
+    <MainLayout
+      title="Data Sensor"
+      subtitle="Tra cứu lịch sử giá trị theo từng loại cảm biến"
+    >
       <div className="records-page">
         <section className="panel filter-panel sensor-filter-panel">
           <h2>Tìm kiếm và lọc dữ liệu</h2>
-          <form className="search-bar sensor-search-bar" onSubmit={handleSearch}>
-            <input type="text"
-              placeholder={searchField === "time" ? "YYYY-MM-DD HH:mm:ss" : "Nhập giá trị cần tìm..."}
+          <form
+            className="search-bar sensor-search-bar"
+            onSubmit={handleSearch}
+          >
+            <input
+              type="text"
+              placeholder={
+                searchField === "time"
+                  ? "YYYY-MM-DD HH:mm:ss"
+                  : "Nhập giá trị cần tìm..."
+              }
               value={search}
-              onChange={(event) => setSearch(event.target.value)} />
-            <select value={searchField} onChange={(event) => setSearchField(event.target.value)}>
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <select
+              value={searchField}
+              onChange={(event) => setSearchField(event.target.value)}
+            >
               <option value="all">Tất cả</option>
               <option value="time">Thời gian</option>
-              {sensors.map((sensor) => <option key={sensor.id} value={sensor.type}>{sensor.name}</option>)}
+              {sensors.map((sensor) => (
+                <option key={sensor.id} value={sensor.type}>
+                  {sensor.name}
+                </option>
+              ))}
             </select>
-            <button type="submit" className="primary-button">Tìm kiếm</button>
+            <button type="submit" className="primary-button">
+              Tìm kiếm
+            </button>
           </form>
         </section>
 
@@ -95,38 +133,98 @@ function DataSensor() {
             <h2>Dữ liệu cảm biến</h2>
             <span>{totalElements} bản ghi · dữ liệu từ MySQL</span>
           </div>
-          {error ? <div className="api-error" role="alert">{error}</div> : null}
+          {error ? (
+            <div className="api-error" role="alert">
+              {error}
+            </div>
+          ) : null}
           <div className="table-scroll">
             <table className="data-table sensor-table">
-              <thead><tr>
-                <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
-                <th onClick={() => handleSort("sensorType")}>LOẠI CẢM BIẾN{sortMark("sensorType")}</th>
-                <th onClick={() => handleSort("value")}>GIÁ TRỊ{sortMark("value")}</th>
-                <th>ĐƠN VỊ</th>
-                <th onClick={() => handleSort("measuredAt")}>THỜI GIAN ĐO{sortMark("measuredAt")}</th>
-              </tr></thead>
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort("id")}>ID{sortMark("id")}</th>
+                  <th onClick={() => handleSort("sensorType")}>
+                    LOẠI CẢM BIẾN{sortMark("sensorType")}
+                  </th>
+                  <th onClick={() => handleSort("value")}>
+                    GIÁ TRỊ{sortMark("value")}
+                  </th>
+                  <th>ĐƠN VỊ</th>
+                  <th onClick={() => handleSort("measuredAt")}>
+                    THỜI GIAN ĐO{sortMark("measuredAt")}
+                  </th>
+                </tr>
+              </thead>
               <tbody>
-                {data.map((item) => <tr key={item.id}>
-                  <td>#{item.id}</td><td>{sensorNames[item.sensorType] || item.sensorType}</td>
-                  <td>{item.value}</td><td>{item.unit}</td><td>{formatDateTime(item.measuredAt)}</td>
-                </tr>)}
+                {data.map((item) => (
+                  <tr key={item.id}>
+                    <td>#{item.id}</td>
+                    <td>{sensorNames[item.sensorType] || item.sensorType}</td>
+                    <td>{item.value}</td>
+                    <td>{item.unit}</td>
+                    <td>{formatDateTime(item.measuredAt)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <div className="table-footer">
-            <span className="pagination-info">Hiển thị {startIndex}–{endIndex} trong {totalElements} bản ghi</span>
+            <span className="pagination-info">
+              Hiển thị {startIndex}–{endIndex} trong {totalElements} bản ghi
+            </span>
             <div className="pagination-tools">
-              <label className="rows-per-page">Số dòng / trang:
-                <select value={rowsPerPage} onChange={(event) => {
-                  setRowsPerPage(Number(event.target.value)); setCurrentPage(1);
-                }}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select>
+              <label className="rows-per-page">
+                Số dòng / trang:
+                <select
+                  value={rowsPerPage}
+                  onChange={(event) => {
+                    setRowsPerPage(Number(event.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
               </label>
               <div className="pagination">
-                <button onClick={() => setCurrentPage((page) => page - 1)} disabled={currentPage === 1} aria-label="Trang trước">‹</button>
-                {totalPages > 5 && currentPage > 3 ? <><button onClick={() => setCurrentPage(1)}>1</button><span>...</span></> : null}
-                {getVisiblePages().map((page) => <button key={page} onClick={() => setCurrentPage(page)} className={currentPage === page ? "page-active" : ""}>{page}</button>)}
-                {totalPages > 5 && currentPage < totalPages - 2 ? <><span>...</span><button onClick={() => setCurrentPage(totalPages)}>{totalPages}</button></> : null}
-                <button onClick={() => setCurrentPage((page) => page + 1)} disabled={currentPage >= totalPages} aria-label="Trang sau">›</button>
+                <button
+                  onClick={() => setCurrentPage((page) => page - 1)}
+                  disabled={currentPage === 1}
+                  aria-label="Trang trước"
+                >
+                  ‹
+                </button>
+                {totalPages > 5 && currentPage > 3 ? (
+                  <>
+                    <button onClick={() => setCurrentPage(1)}>1</button>
+                    <span>...</span>
+                  </>
+                ) : null}
+                {getVisiblePages().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={currentPage === page ? "page-active" : ""}
+                  >
+                    {page}
+                  </button>
+                ))}
+                {totalPages > 5 && currentPage < totalPages - 2 ? (
+                  <>
+                    <span>...</span>
+                    <button onClick={() => setCurrentPage(totalPages)}>
+                      {totalPages}
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  onClick={() => setCurrentPage((page) => page + 1)}
+                  disabled={currentPage >= totalPages}
+                  aria-label="Trang sau"
+                >
+                  ›
+                </button>
               </div>
             </div>
           </div>

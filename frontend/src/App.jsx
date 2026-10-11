@@ -21,10 +21,38 @@ function App() {
         <Route path="/" element={<HomeRedirect />} />
 
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/data-sensor" element={<ProtectedRoute><DataSensor /></ProtectedRoute>} />
-        <Route path="/action-history" element={<ProtectedRoute><ActionHistory /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/data-sensor"
+          element={
+            <ProtectedRoute>
+              <DataSensor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/action-history"
+          element={
+            <ProtectedRoute>
+              <ActionHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>

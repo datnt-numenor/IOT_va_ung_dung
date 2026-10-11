@@ -18,7 +18,9 @@ async function controlDevice(req, res) {
     1,
     "userId",
   );
-  res.status(202).json(await deviceService.controlDevice({ deviceId, action, userId }));
+  res
+    .status(202)
+    .json(await deviceService.controlDevice({ deviceId, action, userId }));
 }
 
 module.exports = { listDevices, getDeviceStatus, controlDevice };
