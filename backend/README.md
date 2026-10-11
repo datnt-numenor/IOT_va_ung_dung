@@ -75,8 +75,13 @@ known state of each device on `iot/devices/command` with `"actionId":0` and
 `"source":"SYNC"`; the ESP32 answers on `iot/devices/status` with the same
 `source`, and the backend ignores that reply (no `action_history` row).
 
-Existing databases created before this change must drop the old per-device
-topic columns once: `npm.cmd run db:drop-device-topics`.
+Existing databases created before this change must drop the old topic columns
+(`devices.command_topic`, `devices.status_topic`, `sensors.mqtt_topic`) once:
+`npm.cmd run db:drop-topic-columns`.
+
+`FAILED` is an action status only, never a device status. Existing databases
+must tighten the `devices` check constraint once:
+`npm.cmd run db:tighten-device-status`.
 
 Run validation tests with `npm.cmd test`.
 

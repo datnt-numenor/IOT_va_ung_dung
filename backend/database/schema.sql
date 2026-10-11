@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS sensors (
   name VARCHAR(100) NOT NULL,
   type VARCHAR(30) NOT NULL,
   unit VARCHAR(10) NOT NULL,
-  mqtt_topic VARCHAR(150) NOT NULL,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -24,7 +23,7 @@ CREATE TABLE IF NOT EXISTS devices (
   type VARCHAR(30) NOT NULL,
   current_status VARCHAR(10) NOT NULL DEFAULT 'OFF',
   updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  CONSTRAINT chk_device_status CHECK (current_status IN ('ON', 'OFF', 'LOADING', 'FAILED'))
+  CONSTRAINT chk_device_status CHECK (current_status IN ('ON', 'OFF', 'LOADING'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS sensor_data (
