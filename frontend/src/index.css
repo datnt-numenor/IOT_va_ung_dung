@@ -503,6 +503,8 @@ p {
   gap: 18px;
 }
 .dashboard-chart-panel {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   padding: 18px 20px;
@@ -520,14 +522,21 @@ p {
 }
 .sensor-chart-stack {
   display: grid;
-  gap: 7px;
+  flex: 9 1 0;
+  grid-auto-rows: minmax(92px, 1fr);
+  gap: 10px;
+}
+/* Chia phần chiều cao còn lại theo tỉ lệ 9:1: biểu đồ chiếm 90%, 10% để trống phía dưới. */
+.dashboard-chart-panel::after {
+  content: "";
+  flex: 1 1 0;
 }
 .sensor-chart-row {
   display: grid;
-  grid-template-columns: 94px minmax(0, 1fr);
-  align-items: center;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: stretch;
   min-width: 0;
-  min-height: 92px;
+  min-height: 0;
   padding: 2px 10px 2px 14px;
   background: #f8fafc;
   border: 1px solid #edf2f7;
@@ -536,16 +545,24 @@ p {
 .sensor-chart-row-label {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 10px;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
   font-weight: 700;
 }
 .sensor-chart-row-label strong {
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.sensor-chart-row-time {
+  color: #475569;
+  font-size: 10px;
   font-weight: 700;
 }
 .sensor-chart-canvas {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
   overflow: hidden;
   border-radius: 10px;
 }
@@ -1947,9 +1964,6 @@ p {
     min-height: 72px;
     grid-template-columns: 70px minmax(0, 1fr);
     padding-inline: 6px;
-  }
-  .dashboard-content .sensor-chart-canvas .recharts-responsive-container {
-    height: 68px !important;
   }
   .dashboard-content .device-list {
     gap: 7px;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -8,6 +9,11 @@ import {
 } from "recharts";
 
 import { getSensorStyle } from "../config/presentation";
+
+// Chỉ hàng cuối hiện trục thời gian; hai hàng trên chừa chỗ trống cùng chiều cao để vùng vẽ của cả ba bằng nhau.
+const TIME_AXIS_HEIGHT = 22;
+// Lề hai bên đủ rộng cho nửa nhãn giờ đầu/cuối trục thời gian, tránh bị cắt mất ký tự.
+const SIDE_MARGIN = 28;
 
 function getDomain(data, key) {
   const values = data.map((item) => Number(item[key])).filter(Number.isFinite);
@@ -28,12 +34,16 @@ function getLatestValue(data, key) {
 }
 
 function SensorChart({ data, sensors }) {
+  // Chỉ số điểm đang được trỏ vào; dùng chung cho cả ba hàng để xem cùng một thời điểm.
+  const [hoverIndex, setHoverIndex] = useState(null);
   const series = sensors.map((sensor) => ({
     key: sensor.type,
     label: sensor.name,
     unit: sensor.unit,
     color: getSensorStyle(sensor.type).color,
   }));
+
+  const hoveredTime = hoverIndex !== null ? data[hoverIndex]?.time : null;
 
   if (!data.length) {
     return <div className="sensor-chart-empty">Đang chờ dữ liệu cảm biến...</div>;
@@ -42,7 +52,8 @@ function SensorChart({ data, sensors }) {
   return (
     <div className="sensor-chart-stack" aria-label="Biểu đồ dữ liệu cảm biến theo thời gian">
       {series.map((item, index) => {
-        const latestValue = getLatestValue(data, item.key);
+        const hovered = hoverIndex !== null ? data[hoverIndex]?.[item.key] : undefined;
+        const shownValue = Number.isFinite(Number(hovered)) ? hovered : getLatestValue(data, item.key);
         const showTimeAxis = index === series.length - 1;
         const gradientId = `sensor-gradient-${item.key}`;
 
@@ -50,12 +61,22 @@ function SensorChart({ data, sensors }) {
           <div className={`sensor-chart-row ${item.key}`} key={item.key}>
             <div className="sensor-chart-row-label" style={{ color: item.color }}>
               <span>{item.label}</span>
-              <strong>{latestValue} {item.unit}</strong>
+              <strong>{shownValue} {item.unit}</strong>
+              <small className="sensor-chart-row-time">{hoveredTime ? `Tại ${hoveredTime}` : "Mới nhất"}</small>
             </div>
 
             <div className="sensor-chart-canvas">
-              <ResponsiveContainer width="100%" height={88}>
-                <AreaChart data={data} margin={{ top: 12, right: 10, bottom: 0, left: 10 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={data}
+                  syncId="sensor-charts"
+                  margin={{ top: 12, right: SIDE_MARGIN, bottom: showTimeAxis ? 0 : TIME_AXIS_HEIGHT, left: SIDE_MARGIN }}
+                  onMouseMove={(state) => {
+                    const index = Number(state?.activeTooltipIndex);
+                    setHoverIndex(Number.isInteger(index) ? index : null);
+                  }}
+                  onMouseLeave={() => setHoverIndex(null)}
+                >
                   <defs>
                     <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={item.color} stopOpacity={0.2} />
@@ -66,16 +87,15 @@ function SensorChart({ data, sensors }) {
                     dataKey="time"
                     hide={!showTimeAxis}
                     interval="preserveStartEnd"
-                    tick={{ fontSize: 10, fill: "#7b879c" }}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: "#475569" }}
                     axisLine={false}
                     tickLine={false}
-                    height={22}
+                    height={TIME_AXIS_HEIGHT}
                   />
                   <YAxis hide domain={getDomain(data, item.key)} />
                   <Tooltip
                     cursor={{ stroke: item.color, strokeOpacity: 0.18 }}
-                    formatter={(value) => [`${value} ${item.unit}`, item.label]}
-                    labelFormatter={(label) => `Thời gian: ${label}`}
+                    content={() => null}
                   />
                   <Area
                     type="monotone"
