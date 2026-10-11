@@ -24,7 +24,7 @@ async function getActionHistory(options) {
             ah.action, ah.status, ah.requested_at AS requestedAt,
             ah.completed_at AS completedAt
      ${joins} ${where}
-     ORDER BY ${sortColumn} ${sortDirection} LIMIT ? OFFSET ?`,
+     ORDER BY ${sortColumn} ${sortDirection}, ah.id ${sortDirection} LIMIT ? OFFSET ?`,
     [...values, size, (page - 1) * size],
   );
   const totalElements = Number(countRow.total);

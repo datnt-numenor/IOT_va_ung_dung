@@ -134,19 +134,21 @@ async function controlDevice({ deviceId, action, userId }) {
 
   socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: "LOADING", status: "LOADING" });
 
-  try {
-    await mqttService.publish(mqttService.getTopics().command, { actionId, deviceId, action });
-  } catch (error) {
-    await markFailed(actionId, deviceId);
-    throw new HttpError(503, `Unable to publish device command: ${error.message}`);
-  }
-
-  const timeoutMs = Number(process.env.DEVICE_TIMEOUT_MS || 5000);
+  // Đặt timeout trước khi publish: nếu broker rớt giữa chừng, publish có thể treo và thiết bị kẹt ở LOADING.
+  const timeoutMs = Number(process.env.DEVICE_TIMEOUT_MS || 10000);
   const timeout = setTimeout(() => {
     markFailed(actionId, deviceId)
       .catch((error) => console.error("Device timeout update failed:", error));
   }, timeoutMs);
   pendingTimeouts.set(actionId, timeout);
+
+  try {
+    await mqttService.publish(mqttService.getTopics().command, { actionId, deviceId, action });
+  } catch (error) {
+    clearTimeout(timeout);
+    await markFailed(actionId, deviceId);
+    throw new HttpError(503, `Unable to publish device command: ${error.message}`);
+  }
 
   return { actionId, deviceId, action, status: "LOADING" };
 }

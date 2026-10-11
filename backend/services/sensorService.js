@@ -109,7 +109,7 @@ async function getHistory({ field, keyword, page, size, sortColumn, sortDirectio
     `SELECT sd.id, s.id AS sensorId, s.type AS sensorType, s.unit,
             sd.value, sd.measured_at AS measuredAt
      FROM sensor_data sd JOIN sensors s ON s.id = sd.sensor_id
-     ${where} ORDER BY ${sortColumn} ${sortDirection} LIMIT ? OFFSET ?`,
+     ${where} ORDER BY ${sortColumn} ${sortDirection}, sd.id ${sortDirection} LIMIT ? OFFSET ?`,
     [...values, size, offset],
   );
   const totalElements = Number(countRow.total);
