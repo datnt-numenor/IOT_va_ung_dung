@@ -14,7 +14,8 @@ export const CHART_POINTS = 20;
 const sensorStyles = {
   temperature: { icon: Thermometer, color: "#f97316" },
   humidity: { icon: Droplets, color: "#06b6d4" },
-  light: { icon: Sun, color: "#2563eb" },
+  // `axis` chọn trục Y trên biểu đồ chung; mặc định là trục trái.
+  light: { icon: Sun, color: "#2563eb", axis: "right" },
 };
 const fallbackSensorStyle = { icon: Gauge, color: "#8b5cf6" };
 

@@ -520,51 +520,47 @@ p {
   padding: 0;
   border: 0;
 }
-.sensor-chart-stack {
-  display: grid;
-  flex: 9 1 0;
-  grid-auto-rows: minmax(92px, 1fr);
-  gap: 10px;
-}
-/* Chia phần chiều cao còn lại theo tỉ lệ 9:1: biểu đồ chiếm 90%, 10% để trống phía dưới. */
-.dashboard-chart-panel::after {
-  content: "";
-  flex: 1 1 0;
-}
-.sensor-chart-row {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: stretch;
-  min-width: 0;
-  min-height: 0;
-  padding: 2px 10px 2px 14px;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-  border-radius: 14px;
-}
-.sensor-chart-row-label {
+.sensor-chart-combined {
   display: flex;
+  flex: 9 1 0;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  gap: 10px;
+  min-width: 0;
+  min-height: 260px;
+}
+.sensor-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.sensor-chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sensor-chart-legend-item i {
+  width: 22px;
+  height: 3px;
+  background: var(--series-color);
+  border-radius: 2px;
+}
+.sensor-chart-legend-item strong {
+  color: var(--series-color);
   font-size: 12px;
   font-weight: 700;
 }
-.sensor-chart-row-label strong {
-  font-size: 16px;
-  font-weight: 700;
-}
-.sensor-chart-row-time {
-  color: #475569;
-  font-size: 10px;
-  font-weight: 700;
-}
 .sensor-chart-canvas {
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 10px;
+  padding: 10px 6px 4px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
 }
 .sensor-chart-empty {
   display: grid;
@@ -1776,10 +1772,6 @@ p {
     width: 25px;
     height: 25px;
   }
-  .sensor-chart-row {
-    grid-template-columns: 82px minmax(0, 1fr);
-    padding-left: 10px;
-  }
   .records-page {
     height: auto;
   }
@@ -1834,17 +1826,6 @@ p {
     flex-direction: column;
     gap: 4px;
   }
-  .sensor-chart-row {
-    grid-template-columns: 1fr;
-    gap: 2px;
-    padding: 10px 8px 2px;
-  }
-  .sensor-chart-row-label {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    padding-inline: 4px;
-  }
   .profile-link {
     padding-inline: 12px;
   }
@@ -1883,9 +1864,6 @@ p {
   .dashboard-content .device-panel {
     height: 100%;
     min-height: 0;
-  }
-  .dashboard-content .sensor-chart-row {
-    grid-template-columns: 74px minmax(0, 1fr);
   }
   .dashboard-content .device-item {
     height: 66px;
@@ -1956,14 +1934,14 @@ p {
   .dashboard-content .device-panel-subtitle {
     display: none;
   }
-  .dashboard-content .sensor-chart-stack {
-    gap: 4px;
+  .dashboard-content .sensor-chart-combined {
+    gap: 6px;
+    min-height: 200px;
     margin-top: 6px;
   }
-  .dashboard-content .sensor-chart-row {
-    min-height: 72px;
-    grid-template-columns: 70px minmax(0, 1fr);
-    padding-inline: 6px;
+  .dashboard-content .sensor-chart-legend-item {
+    padding: 3px 7px;
+    font-size: 11px;
   }
   .dashboard-content .device-list {
     gap: 7px;

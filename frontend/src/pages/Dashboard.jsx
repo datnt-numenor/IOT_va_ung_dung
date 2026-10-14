@@ -26,10 +26,19 @@ function mergeChartSeries(series, types) {
     .map((point) => ({ ...point, time: formatChartTime(point.timestamp) }));
 }
 
+// Một cảm biến chỉ "trực tiếp" khi ESP32 đang online và bản ghi cuối của chính cảm biến đó
+// không cũ hơn ngưỡng so với tín hiệu cuối của ESP32 (so sánh cùng đồng hồ máy chủ).
+function isSensorLive(esp32Status, seenAt) {
+  if (!esp32Status.online || !seenAt || !esp32Status.lastSeen) return false;
+  const gap = Date.parse(esp32Status.lastSeen) - Date.parse(seenAt);
+  return gap < (esp32Status.timeoutMs || 8000);
+}
+
 function Dashboard() {
   const [sensors, setSensors] = useState([]);
   const [devices, setDevices] = useState([]);
   const [sensorValues, setSensorValues] = useState({});
+  const [sensorSeen, setSensorSeen] = useState({});
   const [chartData, setChartData] = useState([]);
   const [deviceStatus, setDeviceStatus] = useState({});
   const [esp32Status, setEsp32Status] = useState({
@@ -61,6 +70,11 @@ function Dashboard() {
             realtime.data.map((item) => [item.sensorType, item.value]),
           ),
         );
+        setSensorSeen(
+          Object.fromEntries(
+            realtime.data.map((item) => [item.sensorType, item.measuredAt]),
+          ),
+        );
         setChartData(
           mergeChartSeries(
             chart.series,
@@ -84,6 +98,13 @@ function Dashboard() {
         const next = { ...current };
         event.data.forEach((item) => {
           next[item.sensorType] = item.value;
+        });
+        return next;
+      });
+      setSensorSeen((current) => {
+        const next = { ...current };
+        event.data.forEach((item) => {
+          next[item.sensorType] = item.measuredAt || event.timestamp;
         });
         return next;
       });
@@ -154,6 +175,7 @@ function Dashboard() {
     if (!currentStatus || currentStatus === "LOADING") return;
     const action = currentStatus === "ON" ? "OFF" : "ON";
     setDeviceStatus((current) => ({ ...current, [device.id]: "LOADING" }));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
     setError("");
     try {
       await apiRequest(`/devices/${device.id}/actions`, {
@@ -194,8 +216,8 @@ function Dashboard() {
                 unit={sensor.unit}
                 icon={<Icon size={24} strokeWidth={2} />}
                 type={sensor.type}
-                isLive={esp32Status.online}
-                lastSeen={esp32Status.lastSeen}
+                isLive={isSensorLive(esp32Status, sensorSeen[sensor.type])}
+                lastSeen={sensorSeen[sensor.type] ?? null}
               />
             );
           })}
@@ -205,7 +227,7 @@ function Dashboard() {
           <div className="dashboard-chart-panel">
             <h2>Dữ liệu cảm biến thời gian thực</h2>
             <p className="dashboard-chart-subtitle">
-              Ba thang đo độc lập, cập nhật trực tiếp từ ESP32
+              Trục trái: nhiệt độ, độ ẩm · trục phải: ánh sáng · cập nhật trực tiếp từ ESP32
             </p>
             <SensorChart data={chartData} sensors={sensors} />
           </div>

@@ -49,6 +49,21 @@ async function getRealtime() {
   return { timestamp, data };
 }
 
+// Mỗi cảm biến được truy vấn riêng nên khi một cảm biến ngừng gửi (ví dụ DHT11 lỗi), chuỗi của nó sẽ nằm ở
+// khoảng thời gian cũ hơn hẳn các chuỗi còn lại. Chỉ giữ các điểm thuộc `limit` mốc thời gian mới nhất của
+// toàn bộ biểu đồ để các đường luôn cùng một cửa sổ thời gian; cảm biến không có dữ liệu trong cửa sổ thì rỗng.
+function alignChartSeries(series, limit) {
+  const times = [...new Set(Object.values(series).flatMap((points) => points.map((point) => point.time)))]
+    .sort()
+    .reverse();
+  if (times.length <= limit) return series;
+
+  const cutoff = times[limit - 1];
+  return Object.fromEntries(
+    Object.entries(series).map(([type, points]) => [type, points.filter((point) => point.time >= cutoff)]),
+  );
+}
+
 async function getChart({ from, to, limit }) {
   const sensorTypes = await getSensorTypes();
   const series = Object.fromEntries(sensorTypes.map((type) => [type, []]));
@@ -69,7 +84,7 @@ async function getChart({ from, to, limit }) {
       value: Number(row.value),
     }));
   }));
-  return { series };
+  return { series: alignChartSeries(series, limit) };
 }
 
 async function getHistory({ field, keyword, page, size, sortColumn, sortDirection }) {
@@ -175,4 +190,6 @@ async function ingestSensorPayload(payload) {
   }
 }
 
-module.exports = { listSensors, getRealtime, getChart, getHistory, normalizePayload, ingestSensorPayload };
+module.exports = {
+  listSensors, getRealtime, getChart, getHistory, normalizePayload, ingestSensorPayload, alignChartSeries,
+};
