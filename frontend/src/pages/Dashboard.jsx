@@ -175,7 +175,7 @@ function Dashboard() {
     if (!currentStatus || currentStatus === "LOADING") return;
     const action = currentStatus === "ON" ? "OFF" : "ON";
     setDeviceStatus((current) => ({ ...current, [device.id]: "LOADING" }));
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setError("");
     try {
       await apiRequest(`/devices/${device.id}/actions`, {
@@ -227,7 +227,8 @@ function Dashboard() {
           <div className="dashboard-chart-panel">
             <h2>Dữ liệu cảm biến thời gian thực</h2>
             <p className="dashboard-chart-subtitle">
-              Trục trái: nhiệt độ, độ ẩm · trục phải: ánh sáng · cập nhật trực tiếp từ ESP32
+              Trục trái: nhiệt độ, độ ẩm · trục phải: ánh sáng · cập nhật trực
+              tiếp từ ESP32
             </p>
             <SensorChart data={chartData} sensors={sensors} />
           </div>
