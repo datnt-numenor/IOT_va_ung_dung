@@ -58,7 +58,7 @@ dự án, dùng `npm.cmd run db:migrate-legacy` để giữ lại dữ liệu tr
 - `/api/v1/devices/:deviceId/status` và `/api/v1/devices/:deviceId/actions`
 - `/api/v1/action-history`
 
-Chi tiết payload MQTT, WebSocket và query API nằm trong `backend/README.md`.
+Chi tiết payload MQTT, Socket.IO và query API nằm trong `backend/README.md`.
 
 Để chạy trọn luồng local khi chưa có ESP32/Mosquitto thật:
 

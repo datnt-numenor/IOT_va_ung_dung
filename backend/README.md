@@ -1,7 +1,7 @@
 # IoT Smart Room backend
 
 Backend follows the API and data model in the project report: Express, MySQL,
-MQTT (Mosquitto) and WebSocket (`ws`).
+MQTT (Mosquitto) and Socket.IO.
 
 ## Setup
 
@@ -35,18 +35,18 @@ cannot be confirmed by ESP32.
 Device actions use `DEFAULT_USER_ID`, or the numeric `x-user-id` header when
 authentication is added.
 
-## WebSocket
+## Socket.IO
 
-Clients connect to `ws://<host>:3000/ws` (path configurable with `WS_PATH`;
-the `Origin` header must be listed in `FRONTEND_ORIGIN`). Every frame is a JSON
-envelope `{"type": "...", "data": {...}}` with these types:
+Clients connect with `socket.io-client` to `http://<host>:3000` (the browser
+`Origin` must be listed in `FRONTEND_ORIGIN`). The server emits these named
+events, each carrying a JSON payload:
 
 - `sensor:update` — new readings after they are stored in MySQL
 - `device:update` — `LOADING`, `ON`, `OFF` or `FAILED` for a device action
 - `esp32:status` — `{ online, lastSeen, timeoutMs }`
 
-The server pings clients every 30 seconds and drops connections that do not
-answer; the frontend reconnects automatically with exponential backoff.
+Socket.IO handles the heartbeat and reconnection itself; the frontend only
+calls `socket.connect()` and re-fetches the dashboard on every `connect` event.
 
 ## MQTT payloads
 
@@ -94,6 +94,6 @@ development stack from this directory:
 npm.cmd run e2e:start
 ```
 
-It starts an MQTT-compatible local test broker, the Express/WebSocket backend,
+It starts an MQTT-compatible local test broker, the Express/Socket.IO backend,
 an ESP32 simulator and Vite. Open `http://127.0.0.1:5173`. Production still
 uses Mosquitto through `MQTT_URL`; the test broker is a development dependency.

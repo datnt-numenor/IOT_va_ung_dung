@@ -1,76 +1,41 @@
-const { WebSocketServer, WebSocket } = require("ws");
+const { Server } = require("socket.io");
 
-const HEARTBEAT_INTERVAL_MS = 30000;
+let io;
 
-let wss;
-let heartbeatTimer;
-
-// Mỗi tin nhắn là một gói JSON: { "type": "sensor:update", "data": { ... } }
-function broadcast(type, data) {
-  if (!wss) return;
-  const message = JSON.stringify({ type, data });
-  for (const client of wss.clients) {
-    if (client.readyState === WebSocket.OPEN) client.send(message);
-  }
+// Mỗi sự kiện có một tên (sensor:update, device:update, esp32:status) kèm dữ liệu JSON.
+// Socket.IO tự lo heartbeat và cho phép client tự kết nối lại.
+function attachSocketServer(httpServer, { allowedOrigins = [] } = {}) {
+  io = new Server(httpServer, {
+    cors: { origin: allowedOrigins },
+    // Từ chối trang web không nằm trong FRONTEND_ORIGIN; client không gửi Origin (script, công cụ) vẫn được phép.
+    allowRequest: (req, callback) => {
+      const { origin } = req.headers;
+      callback(null, !origin || allowedOrigins.includes(origin));
+    },
+  });
+  return io;
 }
 
-function attachWebSocketServer(
-  httpServer,
-  { path = "/ws", allowedOrigins = [] } = {},
-) {
-  wss = new WebSocketServer({
-    server: httpServer,
-    path,
-    verifyClient: ({ origin }) => !origin || allowedOrigins.includes(origin),
-  });
-
-  wss.on("connection", (client) => {
-    client.isAlive = true;
-    client.on("pong", () => {
-      client.isAlive = true;
-    });
-    // Client chỉ lắng nghe; bỏ qua mọi thứ client gửi lên.
-    client.on("message", () => {});
-  });
-
-  // Ngắt các kết nối không còn trả lời ping (đóng laptop, mất Wi-Fi...).
-  heartbeatTimer = setInterval(() => {
-    for (const client of wss.clients) {
-      if (!client.isAlive) {
-        client.terminate();
-        continue;
-      }
-      client.isAlive = false;
-      client.ping();
-    }
-  }, HEARTBEAT_INTERVAL_MS);
-  heartbeatTimer.unref?.();
-
-  return wss;
-}
-
-function closeWebSocketServer() {
-  clearInterval(heartbeatTimer);
-  if (!wss) return Promise.resolve();
-  for (const client of wss.clients) client.terminate();
-  return new Promise((resolve) => wss.close(() => resolve()));
+// Đóng cả các kết nối đang mở lẫn HTTP server bên dưới.
+function closeSocketServer() {
+  return io ? io.close() : Promise.resolve();
 }
 
 function emitSensorUpdate(payload) {
-  broadcast("sensor:update", payload);
+  io?.emit("sensor:update", payload);
 }
 
 function emitDeviceUpdate(payload) {
-  broadcast("device:update", payload);
+  io?.emit("device:update", payload);
 }
 
 function emitEsp32Status(payload) {
-  broadcast("esp32:status", payload);
+  io?.emit("esp32:status", payload);
 }
 
 module.exports = {
-  attachWebSocketServer,
-  closeWebSocketServer,
+  attachSocketServer,
+  closeSocketServer,
   emitSensorUpdate,
   emitDeviceUpdate,
   emitEsp32Status,

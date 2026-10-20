@@ -15,10 +15,7 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
   .map((origin) => origin.trim());
 const app = createApp();
 const server = http.createServer(app);
-socketHub.attachWebSocketServer(server, {
-  path: process.env.WS_PATH || "/ws",
-  allowedOrigins,
-});
+socketHub.attachSocketServer(server, { allowedOrigins });
 
 async function testDatabaseConnection() {
   try {
@@ -52,8 +49,7 @@ server.listen(PORT, () => {
 
 async function shutdown(signal) {
   console.log(`${signal} received, shutting down`);
-  await socketHub.closeWebSocketServer();
-  server.close();
+  await socketHub.closeSocketServer(); // đóng luôn HTTP server
   esp32PresenceService.close();
   await mqttService.closeMqtt();
   await db.end();

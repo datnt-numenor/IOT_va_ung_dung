@@ -1,32 +1,35 @@
 const test = require("node:test");
 const assert = require("node:assert");
 const http = require("http");
-const { WebSocket } = require("ws");
+const { io: connect } = require("socket.io-client");
 const socketHub = require("../realtime/socketHub");
 
 function listen(server) {
   return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(server.address().port)));
 }
 
-test("broadcasts typed events to WebSocket clients and rejects unknown origins", async () => {
+test("broadcasts named events to Socket.IO clients and rejects unknown origins", async () => {
   const server = http.createServer();
-  socketHub.attachWebSocketServer(server, { path: "/ws", allowedOrigins: ["http://allowed.test"] });
+  socketHub.attachSocketServer(server, { allowedOrigins: ["http://allowed.test"] });
   const port = await listen(server);
+  const url = `http://127.0.0.1:${port}`;
 
-  const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "http://allowed.test" });
-  await new Promise((resolve, reject) => { client.once("open", resolve); client.once("error", reject); });
-  const received = new Promise((resolve) => client.once("message", (raw) => resolve(JSON.parse(raw))));
-  socketHub.emitSensorUpdate({ timestamp: "2026-10-06T00:00:00Z", data: [] });
-  assert.deepStrictEqual(await received, {
-    type: "sensor:update",
-    data: { timestamp: "2026-10-06T00:00:00Z", data: [] },
+  const client = connect(url, { transports: ["websocket"], extraHeaders: { origin: "http://allowed.test" } });
+  await new Promise((resolve, reject) => { client.once("connect", resolve); client.once("connect_error", reject); });
+  const received = new Promise((resolve) => client.once("sensor:update", resolve));
+  const payload = { timestamp: "2026-10-06T00:00:00Z", data: [] };
+  socketHub.emitSensorUpdate(payload);
+  assert.deepStrictEqual(await received, payload);
+
+  const blocked = connect(url, {
+    transports: ["websocket"],
+    extraHeaders: { origin: "http://evil.test" },
+    reconnection: false,
   });
-
-  const blocked = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "http://evil.test" });
-  const status = await new Promise((resolve) => blocked.once("unexpected-response", (req, res) => resolve(res.statusCode)));
-  assert.strictEqual(status, 401);
+  const error = await new Promise((resolve) => blocked.once("connect_error", resolve));
+  assert.ok(error);
 
   client.close();
-  await socketHub.closeWebSocketServer();
-  await new Promise((resolve) => server.close(resolve));
+  blocked.close();
+  await socketHub.closeSocketServer();
 });
