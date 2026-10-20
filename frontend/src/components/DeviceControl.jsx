@@ -22,9 +22,11 @@ function DeviceControl({ name, status, onToggle, icon }) {
       </div>
 
       <button
-        className={`toggle-switch ${isOn ? "on" : ""}`}
+        // Đang chờ ESP32 phản hồi: nút dùng kiểu "on" (xanh, gạt sang phải); vì bị disabled nên tự nhạt màu.
+        className={`toggle-switch ${isOn || isLoading ? "on" : ""}`}
         onClick={onToggle}
         disabled={isLoading || isUnknown}
+        aria-busy={isLoading}
         aria-label={`${isOn ? "Tắt" : "Bật"} ${name}`}
       >
         <span className="toggle-thumb" />
