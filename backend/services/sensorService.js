@@ -5,7 +5,7 @@ const socketHub = require("../realtime/socketHub");
 
 const DEFAULT_SENSOR_TYPES = ["temperature", "humidity", "light"];
 // Giới hạn hợp lý cho các cảm biến đã biết; loại cảm biến không có trong danh sách này được chấp nhận nguyên trạng.
-const VALUE_RANGES = { temperature: [-40, 80], humidity: [0, 100], light: [0, 4095] };
+const VALUE_RANGES = { temperature: [-40, 80], humidity: [0, 100], light: [0, 1365] };
 
 async function listSensors() {
   const [rows] = await db.execute(

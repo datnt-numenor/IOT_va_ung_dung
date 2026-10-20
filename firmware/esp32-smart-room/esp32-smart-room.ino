@@ -61,6 +61,17 @@ unsigned long lastSyncRequest = 0;
 // 5. HÀM TIỆN ÍCH
 // ======================================================
 
+// Thu nhỏ giá trị ADC của module quang trở bằng cách chia cho 3 (4095 -> 1365) và đặt tên lux.
+// Không đảo chiều: module này cho ADC cao khi tối nên tối -> số lớn, sáng -> số nhỏ. Đây là chỉ số độ sáng
+// tương đối, không phải lux đo bằng lux kế. Hằng số cần khớp với backend/scripts/convertLightToLux.js.
+const int ADC_MAX = 4095;
+const float LUX_DIVISOR = 3.0;
+
+float adcToLux(int adc) {
+  adc = constrain(adc, 0, ADC_MAX);
+  return adc / LUX_DIVISOR;
+}
+
 // Đổi deviceId (1..LED_COUNT) thành số chân GPIO của LED tương ứng.
 // Trả về -1 nếu deviceId không hợp lệ, để các hàm khác bỏ qua thay vì bật nhầm chân.
 int getLedPin(int deviceId) {
@@ -241,7 +252,7 @@ void connectMQTT() {
 // 10. GỬI DỮ LIỆU CẢM BIẾN
 // ======================================================
 
-// Đọc DHT11 (nhiệt độ, độ ẩm) và cảm biến ánh sáng (ADC 12-bit, 0..4095),
+// Đọc DHT11 (nhiệt độ, độ ẩm) và cảm biến ánh sáng (ADC 12-bit, 0..4095, đổi sang lux bằng adcToLux),
 // rồi publish JSON lên TOPIC_SENSOR. Được gọi mỗi SENSOR_INTERVAL.
 // Nếu DHT11 đọc lỗi thì vẫn gửi giá trị ánh sáng, tránh việc web báo ESP32 offline.
 void publishSensorData() {
@@ -256,7 +267,7 @@ void publishSensorData() {
     data["temperature"] = temperature;
     data["humidity"] = humidity;
   }
-  data["light"] = lightValue;
+  data["light"] = roundf(adcToLux(lightValue) * 10) / 10.0;  // lux, 1 chữ số thập phân
 
   char payload[192];
   serializeJson(data, payload, sizeof(payload));

@@ -11,8 +11,9 @@ import {
 import { getSensorStyle } from "../config/presentation";
 
 // Mỗi trục có thang cố định để đọc được giá trị: trục trái cho nhiệt độ/độ ẩm (0–100),
-// trục phải cho ánh sáng (ADC 12-bit, 0–4095).
-const DOMAINS = { left: [0, 100], right: [0, 4095] };
+// trục phải cho ánh sáng (ADC chia 3 nên tối đa 1365; chọn 0–1600 để vạch chia tròn và thẳng hàng với trục trái).
+const DOMAINS = { left: [0, 100], right: [0, 1600] };
+const TICKS = { left: [0, 25, 50, 75, 100], right: [0, 400, 800, 1200, 1600] };
 const AXIS_WIDTHS = { left: 38, right: 46 };
 const TICK_COLOR = "#475569";
 const TICK_STYLE = { fontSize: 11, fontWeight: 700, fill: TICK_COLOR };
@@ -74,6 +75,7 @@ function SensorChart({ data, sensors }) {
                 yAxisId={axis}
                 orientation={axis}
                 domain={DOMAINS[axis]}
+                ticks={TICKS[axis]}
                 tick={TICK_STYLE}
                 axisLine={AXIS_LINE}
                 tickLine={AXIS_LINE}

@@ -25,7 +25,13 @@ After every MQTT (re)connect the ESP32 publishes `{"clientId","deviceIds"}` on
 backend replays each device's last known state as a command with
 `"actionId":0` and `"source":"SYNC"`.
 
-The `light` field is the raw 12-bit value returned by `analogRead(GPIO32)`, so
-its unit is `ADC` and its nominal range is `0` to `4095`. It is not a lux value;
-converting it to lux requires calibration against a reference light meter and
-the electrical characteristics of the photoresistor circuit.
+The `light` field is reported on a **0–1365 "lux" scale**. The firmware reads
+the 12-bit value from `analogRead(GPIO32)` and divides it by 3 in `adcToLux()`:
+`lux = ADC / 3`. The photoresistor module used here returns a higher ADC value
+when the room is darker, so the number is **large in the dark and small in the
+light**. This is a relative index, not a calibrated measurement from a light
+meter (real lux grows with brightness); the unit label is kept as `lux` for
+display only.
+
+When the constants change, update `backend/scripts/convertLightToLux.js` too,
+so that stored history uses the same conversion.

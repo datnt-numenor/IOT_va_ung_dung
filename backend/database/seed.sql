@@ -5,7 +5,7 @@ ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
 INSERT INTO sensors (id, code, name, type, unit) VALUES
   (1, 'TEMP_01', 'Nhiệt độ', 'temperature', '°C'),
   (2, 'HUM_01', 'Độ ẩm', 'humidity', '%'),
-  (3, 'LIGHT_01', 'Ánh sáng', 'light', 'ADC')
+  (3, 'LIGHT_01', 'Ánh sáng', 'light', 'lux')
 ON DUPLICATE KEY UPDATE name = VALUES(name), unit = VALUES(unit);
 
 INSERT INTO devices (id, code, name, type, current_status) VALUES
