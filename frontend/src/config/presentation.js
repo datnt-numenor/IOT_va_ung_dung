@@ -9,7 +9,7 @@ import {
   Thermometer,
 } from "lucide-react";
 
-export const CHART_POINTS = 20;
+export const CHART_POINTS = 30;
 
 const sensorStyles = {
   temperature: { icon: Thermometer, color: "#f97316" },
