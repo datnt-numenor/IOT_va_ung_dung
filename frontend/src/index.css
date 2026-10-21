@@ -852,6 +852,47 @@ p {
 .data-table td:first-child {
   color: #718097;
 }
+.copyable-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.copy-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 4px;
+  color: #94a3b8;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: color 0.15s, background-color 0.15s, opacity 0.15s;
+}
+.data-table tbody tr:hover .copy-button,
+.copy-button:focus-visible {
+  opacity: 1;
+}
+.copy-button:hover {
+  color: #2563eb;
+  background: #e8effb;
+}
+.copy-button[data-copied="true"] {
+  color: #16a34a;
+  opacity: 1;
+}
+.copy-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .sensor-table {
   min-width: 760px;
 }

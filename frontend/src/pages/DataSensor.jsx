@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import MainLayout from "../components/MainLayout";
-import { formatDateTime } from "../utils/dateTime";
+import CopyableTime from "../components/CopyableTime";
 
 const sortFields = {
   id: "id",
@@ -162,7 +162,9 @@ function DataSensor() {
                     <td>{sensorNames[item.sensorType] || item.sensorType}</td>
                     <td>{item.value}</td>
                     <td>{item.unit}</td>
-                    <td>{formatDateTime(item.measuredAt)}</td>
+                    <td>
+                      <CopyableTime value={item.measuredAt} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

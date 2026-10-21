@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import MainLayout from "../components/MainLayout";
-import { formatDateTime } from "../utils/dateTime";
+import CopyableTime from "../components/CopyableTime";
 
 const actionLabels = { ON: "BẬT", OFF: "TẮT" };
 const sortFields = {
@@ -200,7 +200,9 @@ function ActionHistory() {
                         {item.status}
                       </span>
                     </td>
-                    <td>{formatDateTime(item.requestedAt)}</td>
+                    <td>
+                      <CopyableTime value={item.requestedAt} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
