@@ -1,6 +1,6 @@
-INSERT INTO users (id, username, password_hash, full_name, email)
-VALUES (1, 'admin', SHA2('123456', 256), 'Nguyễn Tiến Đạt', NULL)
-ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
+INSERT INTO users (id, username, password_hash, full_name, email, role)
+VALUES (1, 'admin', '$2b$10$psuIsYA7fRaWByRtS19zReuHSajy5D641VsDQCst2jELxV7.nCtPi', 'Nguyễn Tiến Đạt', NULL, 'admin')
+ON DUPLICATE KEY UPDATE full_name = VALUES(full_name), role = VALUES(role);
 
 INSERT INTO sensors (id, code, name, type, unit) VALUES
   (1, 'TEMP_01', 'Nhiệt độ', 'temperature', '°C'),

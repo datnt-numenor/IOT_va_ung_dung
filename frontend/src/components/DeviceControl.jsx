@@ -1,4 +1,4 @@
-function DeviceControl({ name, status, onToggle, icon }) {
+function DeviceControl({ name, status, onToggle, icon, readOnly = false }) {
   const isUnknown = !status;
   const isLoading = status === "LOADING";
   const isOn = status === "ON";
@@ -25,7 +25,8 @@ function DeviceControl({ name, status, onToggle, icon }) {
         // Đang chờ ESP32 phản hồi: nút dùng kiểu "on" (xanh, gạt sang phải); vì bị disabled nên tự nhạt màu.
         className={`toggle-switch ${isOn || isLoading ? "on" : ""}`}
         onClick={onToggle}
-        disabled={isLoading || isUnknown}
+        disabled={isLoading || isUnknown || readOnly}
+        title={readOnly ? "Bạn không có quyền điều khiển thiết bị" : undefined}
         aria-busy={isLoading}
         aria-label={`${isOn ? "Tắt" : "Bật"} ${name}`}
       >

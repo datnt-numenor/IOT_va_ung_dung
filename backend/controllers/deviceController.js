@@ -13,11 +13,8 @@ async function getDeviceStatus(req, res) {
 async function controlDevice(req, res) {
   const deviceId = positiveInteger(req.params.deviceId, null, "deviceId");
   const action = enumValue(req.body?.action, ["ON", "OFF"], "action");
-  const userId = positiveInteger(
-    req.header("x-user-id") || process.env.DEFAULT_USER_ID || 1,
-    1,
-    "userId",
-  );
+  // Người thực hiện lấy từ token đã xác thực, không tin dữ liệu client tự khai.
+  const userId = req.user.id;
   res
     .status(202)
     .json(await deviceService.controlDevice({ deviceId, action, userId }));

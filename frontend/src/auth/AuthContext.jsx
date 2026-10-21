@@ -1,34 +1,41 @@
-import { useState } from "react";
-import { AUTH_STORAGE_KEY, AuthContext } from "./authContext";
-
-function hasStoredSession() {
-  return (
-    localStorage.getItem(AUTH_STORAGE_KEY) === "true" ||
-    sessionStorage.getItem(AUTH_STORAGE_KEY) === "true"
-  );
-}
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { apiRequest } from "../api/client";
+import { AUTH_EXPIRED_EVENT, AuthContext } from "./authContext";
+import { clearSession, getSession, saveSession } from "./tokenStorage";
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(hasStoredSession);
+  const [session, setSession] = useState(getSession);
 
-  function login({ remember }) {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  const login = useCallback(async ({ username, password, remember }) => {
+    const result = await apiRequest("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password, remember }),
+    });
+    const next = { token: result.token, user: result.user };
+    saveSession(next, remember);
+    setSession(next);
+  }, []);
 
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem(AUTH_STORAGE_KEY, "true");
-    setIsAuthenticated(true);
-  }
+  const logout = useCallback(() => {
+    clearSession();
+    setSession(null);
+  }, []);
 
-  function logout() {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
-    setIsAuthenticated(false);
-  }
+  // API hoặc Socket.IO báo token hết hạn/không hợp lệ thì đăng xuất để quay về trang Login.
+  useEffect(() => {
+    window.addEventListener(AUTH_EXPIRED_EVENT, logout);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, logout);
+  }, [logout]);
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      isAuthenticated: Boolean(session?.token),
+      user: session?.user ?? null,
+      login,
+      logout,
+    }),
+    [session, login, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

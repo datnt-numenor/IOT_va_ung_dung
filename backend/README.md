@@ -24,7 +24,10 @@ cannot be confirmed by ESP32.
 
 ## REST API
 
-- `GET /api/v1/health`
+- `GET /api/v1/health` (public)
+- `POST /api/v1/auth/login` with `{ "username", "password", "remember" }` (public)
+  returns `{ token, user }`
+- `GET /api/v1/auth/me`
 - `GET /api/v1/sensors/realtime`
 - `GET /api/v1/sensor-data/chart?from=&to=&limit=20`
 - `GET /api/v1/sensor-data?field=&keyword=&page=1&size=10&sort=id,DESC`
@@ -32,8 +35,34 @@ cannot be confirmed by ESP32.
 - `POST /api/v1/devices/:deviceId/actions` with `{ "action": "ON" }`
 - `GET /api/v1/action-history?time=&deviceId=&action=&status=&page=1&size=10&sort=requestedAt,DESC`
 
-Device actions use `DEFAULT_USER_ID`, or the numeric `x-user-id` header when
-authentication is added.
+## Authentication
+
+Every API except `/health` and `/auth/login` needs `Authorization: Bearer
+<token>`; the Socket.IO handshake needs the same token in `auth.token`. Tokens
+are JWTs signed with `JWT_SECRET` (set it to at least 16 random characters, the
+backend refuses to start without it) and expire after 8 hours, or 7 days when
+the login request sets `remember`. Passwords are stored as bcrypt hashes; a
+legacy SHA-256 hash from an older seed is accepted once and upgraded to bcrypt
+on that user's first successful login. More than 10 failed logins per IP in 15
+minutes returns `429`.
+
+Device actions are recorded for the user in the token (`req.user.id`).
+
+### Authorization (roles)
+
+Each user has a `role` (`admin` or `viewer`, column `users.role`), carried in
+the token. `POST /api/v1/devices/:deviceId/actions` is the only write action
+and requires the `admin` role: no token returns `401`, a `viewer` returns
+`403`. Read-only APIs are open to any signed-in user. Tokens issued before
+roles existed are rejected, so users must sign in again.
+
+Existing databases add the column once with `npm.cmd run db:add-user-role`
+(the `admin` account becomes admin, new accounts default to viewer). Create
+another account with:
+
+```powershell
+$env:NEW_USER_PASSWORD = "<password>"; npm.cmd run user:create -- <username> "<Full name>" viewer
+```
 
 ## Socket.IO
 

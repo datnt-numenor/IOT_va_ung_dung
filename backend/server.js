@@ -3,11 +3,14 @@ require("dotenv").config();
 const http = require("http");
 const db = require("./config/db");
 const createApp = require("./app");
+const authService = require("./services/authService");
 const sensorService = require("./services/sensorService");
 const deviceService = require("./services/deviceService");
 const mqttService = require("./services/mqttService");
 const esp32PresenceService = require("./services/esp32PresenceService");
 const socketHub = require("./realtime/socketHub");
+
+authService.assertConfigured();
 
 const PORT = Number(process.env.PORT || 3000);
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
@@ -15,7 +18,10 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
   .map((origin) => origin.trim());
 const app = createApp();
 const server = http.createServer(app);
-socketHub.attachSocketServer(server, { allowedOrigins });
+socketHub.attachSocketServer(server, {
+  allowedOrigins,
+  verifyToken: authService.verifyToken,
+});
 
 async function testDatabaseConnection() {
   try {

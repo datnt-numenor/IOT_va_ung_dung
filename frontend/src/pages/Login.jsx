@@ -7,18 +7,23 @@ function Login() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setError("");
+    setSubmitting(true);
 
-    if (username === "admin" && password === "123456") {
-      login({ remember });
+    try {
+      await login({ username: username.trim(), password, remember });
       navigate("/dashboard", { replace: true });
-    } else {
-      setError("Tên đăng nhập hoặc mật khẩu không đúng");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -85,7 +90,9 @@ function Login() {
           <span>Ghi nhớ đăng nhập</span>
         </label>
 
-        <button type="submit">Đăng nhập</button>
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
+        </button>
       </form>
     </div>
   );

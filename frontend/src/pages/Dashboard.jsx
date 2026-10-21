@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import { socket } from "../api/socket";
+import { useAuth } from "../auth/useAuth";
 import DeviceControl from "../components/DeviceControl";
 import MainLayout from "../components/MainLayout";
 import SensorCard from "../components/SensorCard";
@@ -35,6 +36,9 @@ function isSensorLive(esp32Status, seenAt) {
 }
 
 function Dashboard() {
+  // Chỉ vai trò admin được gửi lệnh điều khiển; backend vẫn kiểm tra lại bằng 403.
+  const { user } = useAuth();
+  const canControl = user?.role === "admin";
   const [sensors, setSensors] = useState([]);
   const [devices, setDevices] = useState([]);
   const [sensorValues, setSensorValues] = useState({});
@@ -247,6 +251,7 @@ function Dashboard() {
                     name={device.name}
                     status={deviceStatus[device.id]}
                     onToggle={() => handleToggleDevice(device)}
+                    readOnly={!canControl}
                     icon={<Icon size={22} strokeWidth={2} />}
                   />
                 );
