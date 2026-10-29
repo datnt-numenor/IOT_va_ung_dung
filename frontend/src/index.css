@@ -702,6 +702,184 @@ p {
 .filter-panel {
   padding: 16px 20px;
 }
+
+/* Cảnh báo ánh sáng */
+@keyframes alert-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  animation: alert-blink 0.9s ease-in-out infinite;
+}
+.sensor-card.alerting {
+  border-color: #ef4444;
+  animation: alert-blink 0.9s ease-in-out infinite;
+}
+.device-item.warning .device-icon {
+  color: #dc2626;
+  background: #fee2e2;
+}
+.device-item.alerting .device-icon {
+  animation: alert-blink 0.6s ease-in-out infinite;
+}
+.device-auto-badge {
+  padding: 4px 10px;
+  color: #4d5c75;
+  background: #edf2fa;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.alert-settings {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+}
+.alert-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.alert-settings h3 {
+  margin: 0;
+  color: #131b29;
+  font-size: 13px;
+  font-weight: 600;
+}
+.alert-toast {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 50;
+  padding: 12px 18px;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  font-size: 14px;
+  font-weight: 600;
+}
+.alert-settings-hint {
+  margin: 6px 0 0;
+  color: #616e85;
+  font-size: 11px;
+}
+.alert-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.alert-settings-row label {
+  color: #4d5c75;
+  font-size: 12px;
+  font-weight: 600;
+}
+.alert-settings-row input {
+  width: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #dbe3f0;
+  border-radius: 8px;
+}
+.alert-settings-row button {
+  height: 34px;
+  padding: 0 14px;
+  color: #fff;
+  background: #2563eb;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.alert-settings-row button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.alert-settings-error {
+  margin: 6px 0 0;
+  color: #b91c1c;
+  font-size: 11px;
+}
+.statistics-content {
+  display: flex;
+  flex-direction: column;
+}
+.alert-stats-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 22px 14px;
+}
+.alert-stats-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.alert-stats-tools select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #dbe3f0;
+  border-radius: 8px;
+  background: #fff;
+}
+.alert-stats-summary {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.alert-stats-summary div {
+  display: flex;
+  flex: 1 1 0;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 12px;
+  color: #4d5c75;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  font-size: 12px;
+}
+.alert-stats-summary strong {
+  color: #131b29;
+  font-size: 18px;
+}
+.alert-stats-chart {
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin-top: 12px;
+}
+.link-button {
+  margin-left: 10px;
+  padding: 0;
+  color: #2563eb;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
 .sensor-filter-panel {
   min-height: 0;
 }
@@ -2013,4 +2191,96 @@ p {
   .dashboard-content .dashboard-page {
     height: auto;
   }
+}
+
+/* Không cuộn trang: các trang trên desktop vừa khít khung nhìn; bảng tự giảm số dòng cho vừa (xem useFitRows). */
+@media (min-width: 721px) and (min-height: 561px) {
+  html,
+  body {
+    overflow: hidden;
+  }
+  .sidebar {
+    min-height: 0;
+  }
+  .fit-content {
+    display: flex;
+    height: calc(100dvh - 88px);
+    min-height: 0;
+    flex-direction: column;
+    padding-block: 20px;
+    overflow: hidden;
+  }
+  .fit-content .records-page {
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+  .fit-content .table-scroll {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+  .fit-content .data-table th {
+    height: 40px;
+  }
+  .fit-content .data-table td {
+    height: 38px;
+    padding-block: 0;
+  }
+}
+
+/* Màn hình thấp (laptop): thu gọn trang Profile để vừa khung nhìn, không bị cắt hay phải cuộn. */
+@media (min-width: 721px) and (min-height: 561px) and (max-height: 760px) {
+  .fit-content .profile-identity,
+  .fit-content .resources-panel {
+    padding: 16px 20px;
+  }
+  .fit-content .profile-person {
+    gap: 16px;
+    margin: 14px 12px 10px;
+  }
+  .fit-content .profile-avatar {
+    flex-basis: 72px;
+    width: 72px;
+    height: 72px;
+  }
+  .fit-content .profile-divider {
+    margin-bottom: 10px;
+  }
+  .fit-content .profile-academic {
+    margin-top: 12px;
+  }
+  .fit-content .academic-grid {
+    gap: 8px;
+    margin-top: 9px;
+  }
+  .fit-content .academic-grid > div {
+    min-height: 48px;
+    padding: 6px 10px;
+  }
+  .fit-content .profile-links {
+    gap: 9px;
+    margin-top: 14px;
+  }
+  .fit-content .profile-link {
+    min-height: 72px;
+    padding: 8px 14px;
+  }
+  .fit-content .resource-icon {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Ô cài ngưỡng X nằm trên đầu trang Thống kê, dạng thẻ trắng giống các panel khác. */
+.statistics-content .alert-settings {
+  flex: 0 0 auto;
+  margin: 0 0 16px;
+  padding: 14px 22px;
+  background: #fff;
+  border: 1px solid #dbe3f0;
+  border-radius: 18px;
+}
+.statistics-content .alert-settings-row {
+  max-width: 420px;
 }

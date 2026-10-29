@@ -2,10 +2,10 @@ const db = require("../config/db");
 const HttpError = require("../utils/httpError");
 const { toIsoUtc } = require("../utils/query");
 const socketHub = require("../realtime/socketHub");
+const { VALUE_RANGES } = require("../utils/sensorRanges");
+const alertService = require("./alertService");
 
 const DEFAULT_SENSOR_TYPES = ["temperature", "humidity", "light"];
-// Giới hạn hợp lý cho các cảm biến đã biết; loại cảm biến không có trong danh sách này được chấp nhận nguyên trạng.
-const VALUE_RANGES = { temperature: [-40, 80], humidity: [0, 100], light: [0, 1365] };
 
 async function listSensors() {
   const [rows] = await db.execute(
@@ -43,51 +43,73 @@ async function getRealtime() {
   `);
   const data = rows.map(mapSensorRow);
   const timestamp = data.reduce(
-    (latest, item) => (!latest || item.measuredAt > latest ? item.measuredAt : latest),
+    (latest, item) =>
+      !latest || item.measuredAt > latest ? item.measuredAt : latest,
     null,
   );
   return { timestamp, data };
 }
 
-// Mỗi cảm biến được truy vấn riêng nên khi một cảm biến ngừng gửi (ví dụ DHT11 lỗi), chuỗi của nó sẽ nằm ở
-// khoảng thời gian cũ hơn hẳn các chuỗi còn lại. Chỉ giữ các điểm thuộc `limit` mốc thời gian mới nhất của
-// toàn bộ biểu đồ để các đường luôn cùng một cửa sổ thời gian; cảm biến không có dữ liệu trong cửa sổ thì rỗng.
 function alignChartSeries(series, limit) {
-  const times = [...new Set(Object.values(series).flatMap((points) => points.map((point) => point.time)))]
+  const times = [
+    ...new Set(
+      Object.values(series).flatMap((points) =>
+        points.map((point) => point.time),
+      ),
+    ),
+  ]
     .sort()
     .reverse();
   if (times.length <= limit) return series;
 
   const cutoff = times[limit - 1];
   return Object.fromEntries(
-    Object.entries(series).map(([type, points]) => [type, points.filter((point) => point.time >= cutoff)]),
+    Object.entries(series).map(([type, points]) => [
+      type,
+      points.filter((point) => point.time >= cutoff),
+    ]),
   );
 }
 
 async function getChart({ from, to, limit }) {
   const sensorTypes = await getSensorTypes();
   const series = Object.fromEntries(sensorTypes.map((type) => [type, []]));
-  await Promise.all(sensorTypes.map(async (type) => {
-    const conditions = ["s.type = ?"];
-    const values = [type];
-    if (from) { conditions.push("sd.measured_at >= ?"); values.push(from); }
-    if (to) { conditions.push("sd.measured_at <= ?"); values.push(to); }
-    const [rows] = await db.execute(
-      `SELECT sd.value, sd.measured_at AS measuredAt
+  await Promise.all(
+    sensorTypes.map(async (type) => {
+      const conditions = ["s.type = ?"];
+      const values = [type];
+      if (from) {
+        conditions.push("sd.measured_at >= ?");
+        values.push(from);
+      }
+      if (to) {
+        conditions.push("sd.measured_at <= ?");
+        values.push(to);
+      }
+      const [rows] = await db.execute(
+        `SELECT sd.value, sd.measured_at AS measuredAt
        FROM sensor_data sd JOIN sensors s ON s.id = sd.sensor_id
        WHERE ${conditions.join(" AND ")}
        ORDER BY sd.measured_at DESC, sd.id DESC LIMIT ?`,
-      [...values, limit],
-    );
-    series[type] = rows.reverse().map((row) => ({
-      time: toIsoUtc(row.measuredAt),
-      value: Number(row.value),
-    }));
-  }));
+        [...values, limit],
+      );
+      series[type] = rows.reverse().map((row) => ({
+        time: toIsoUtc(row.measuredAt),
+        value: Number(row.value),
+      }));
+    }),
+  );
   return { series: alignChartSeries(series, limit) };
 }
 
-async function getHistory({ field, keyword, page, size, sortColumn, sortDirection }) {
+async function getHistory({
+  field,
+  keyword,
+  page,
+  size,
+  sortColumn,
+  sortDirection,
+}) {
   const conditions = [];
   const values = [];
   const sensorTypes = await getSensorTypes();
@@ -96,7 +118,9 @@ async function getHistory({ field, keyword, page, size, sortColumn, sortDirectio
   }
   if (field === "time") {
     if (keyword) {
-      conditions.push("DATE_FORMAT(CONVERT_TZ(sd.measured_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?");
+      conditions.push(
+        "DATE_FORMAT(CONVERT_TZ(sd.measured_at, '+00:00', '+07:00'), '%Y-%m-%d %H:%i:%s') LIKE ?",
+      );
       values.push(`${keyword}%`);
     }
   } else if (field !== "all") {
@@ -129,7 +153,10 @@ async function getHistory({ field, keyword, page, size, sortColumn, sortDirectio
   );
   const totalElements = Number(countRow.total);
   return {
-    content: rows.map(mapSensorRow), page, size, totalElements,
+    content: rows.map(mapSensorRow),
+    page,
+    size,
+    totalElements,
     totalPages: Math.ceil(totalElements / size),
   };
 }
@@ -138,24 +165,35 @@ function normalizePayload(payload, sensorTypes = DEFAULT_SENSOR_TYPES) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new HttpError(400, "Sensor payload must be an object");
   }
-  const measuredAt = payload.timestamp ? new Date(payload.timestamp) : new Date();
-  if (Number.isNaN(measuredAt.getTime())) throw new HttpError(400, "Invalid sensor timestamp");
+  const measuredAt = payload.timestamp
+    ? new Date(payload.timestamp)
+    : new Date();
+  if (Number.isNaN(measuredAt.getTime()))
+    throw new HttpError(400, "Invalid sensor timestamp");
   const readings = sensorTypes.flatMap((type) => {
     if (payload[type] === undefined) return [];
     const value = Number(payload[type]);
-    if (!Number.isFinite(value)) throw new HttpError(400, `${type} must be numeric`);
+    if (!Number.isFinite(value))
+      throw new HttpError(400, `${type} must be numeric`);
     const range = VALUE_RANGES[type];
     if (range && (value < range[0] || value > range[1])) {
-      throw new HttpError(400, `${type} must be between ${range[0]} and ${range[1]}`);
+      throw new HttpError(
+        400,
+        `${type} must be between ${range[0]} and ${range[1]}`,
+      );
     }
     return [{ type, value }];
   });
-  if (!readings.length) throw new HttpError(400, "Payload has no supported sensor values");
+  if (!readings.length)
+    throw new HttpError(400, "Payload has no supported sensor values");
   return { measuredAt, readings };
 }
 
 async function ingestSensorPayload(payload) {
-  const { measuredAt, readings } = normalizePayload(payload, await getSensorTypes());
+  const { measuredAt, readings } = normalizePayload(
+    payload,
+    await getSensorTypes(),
+  );
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -168,19 +206,34 @@ async function ingestSensorPayload(payload) {
     const saved = [];
     for (const reading of readings) {
       const sensor = metadata.get(reading.type);
-      if (!sensor) throw new Error(`Sensor metadata not found: ${reading.type}`);
+      if (!sensor)
+        throw new Error(`Sensor metadata not found: ${reading.type}`);
       const [result] = await connection.execute(
         "INSERT INTO sensor_data (sensor_id, value, measured_at) VALUES (?, ?, ?)",
         [sensor.id, reading.value, measuredAt],
       );
       saved.push({
-        id: result.insertId, sensorId: sensor.id, sensorType: reading.type,
-        value: reading.value, unit: sensor.unit, measuredAt: measuredAt.toISOString(),
+        id: result.insertId,
+        sensorId: sensor.id,
+        sensorType: reading.type,
+        value: reading.value,
+        unit: sensor.unit,
+        measuredAt: measuredAt.toISOString(),
       });
     }
     await connection.commit();
     const event = { timestamp: measuredAt.toISOString(), data: saved };
     socketHub.emitSensorUpdate(event);
+
+    // Kiểm tra ngưỡng cảnh báo ánh sáng.
+    const light = saved.find((reading) => reading.sensorType === "light");
+    if (light) {
+      alertService
+        .evaluate(light.value)
+        .catch((error) =>
+          console.error("Alert evaluation failed:", error.message),
+        );
+    }
     return event;
   } catch (error) {
     await connection.rollback();
@@ -191,5 +244,11 @@ async function ingestSensorPayload(payload) {
 }
 
 module.exports = {
-  listSensors, getRealtime, getChart, getHistory, normalizePayload, ingestSensorPayload, alignChartSeries,
+  listSensors,
+  getRealtime,
+  getChart,
+  getHistory,
+  normalizePayload,
+  ingestSensorPayload,
+  alignChartSeries,
 };

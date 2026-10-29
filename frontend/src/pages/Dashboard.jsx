@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import { socket } from "../api/socket";
@@ -49,6 +50,7 @@ function Dashboard() {
     online: false,
     lastSeen: null,
   });
+  const [alert, setAlert] = useState({ active: false, threshold: null });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -60,12 +62,13 @@ function Dashboard() {
           apiRequest("/sensors", { signal: controller.signal }),
           apiRequest("/devices", { signal: controller.signal }),
         ]);
-        const [realtime, chart, presence] = await Promise.all([
+        const [realtime, chart, presence, alertStatus] = await Promise.all([
           apiRequest("/sensors/realtime", { signal: controller.signal }),
           apiRequest(`/sensor-data/chart?limit=${CHART_POINTS}`, {
             signal: controller.signal,
           }),
           apiRequest("/sensors/status", { signal: controller.signal }),
+          apiRequest("/alerts/status", { signal: controller.signal }),
         ]);
         setSensors(sensorList.data);
         setDevices(deviceList.data);
@@ -86,6 +89,7 @@ function Dashboard() {
           ),
         );
         setEsp32Status(presence);
+        setAlert(alertStatus);
         setDeviceStatus(
           Object.fromEntries(
             deviceList.data.map((device) => [device.id, device.currentStatus]),
@@ -163,6 +167,7 @@ function Dashboard() {
     socket.on("sensor:update", handleSensorUpdate);
     socket.on("device:update", handleDeviceUpdate);
     socket.on("esp32:status", handleEsp32Status);
+    socket.on("alert:update", setAlert);
 
     return () => {
       controller.abort();
@@ -170,6 +175,7 @@ function Dashboard() {
       socket.off("sensor:update", handleSensorUpdate);
       socket.off("device:update", handleDeviceUpdate);
       socket.off("esp32:status", handleEsp32Status);
+      socket.off("alert:update", setAlert);
       socket.disconnect();
     };
   }, []);
@@ -209,6 +215,14 @@ function Dashboard() {
           </div>
         ) : null}
 
+        {alert.active ? (
+          <div className="alert-banner" role="alert">
+            <TriangleAlert size={18} aria-hidden="true" />
+            Cảnh báo: ánh sáng {sensorValues.light ?? alert.value} vượt ngưỡng{" "}
+            {alert.threshold}
+          </div>
+        ) : null}
+
         <div className="sensor-grid">
           {sensors.map((sensor) => {
             const Icon = getSensorStyle(sensor.type).icon;
@@ -220,6 +234,7 @@ function Dashboard() {
                 unit={sensor.unit}
                 icon={<Icon size={24} strokeWidth={2} />}
                 type={sensor.type}
+                alerting={alert.active && sensor.type === "light"}
                 isLive={isSensorLive(esp32Status, sensorSeen[sensor.type])}
                 lastSeen={sensorSeen[sensor.type] ?? null}
               />
@@ -245,6 +260,7 @@ function Dashboard() {
             <div className="device-list">
               {devices.map((device) => {
                 const Icon = getDeviceIcon(device.type);
+                const isWarning = device.type === "warning";
                 return (
                   <DeviceControl
                     key={device.id}
@@ -252,6 +268,11 @@ function Dashboard() {
                     status={deviceStatus[device.id]}
                     onToggle={() => handleToggleDevice(device)}
                     readOnly={!canControl}
+                    lockedReason={
+                      isWarning ? "Tự động theo ngưỡng ánh sáng" : ""
+                    }
+                    variant={isWarning ? "warning" : ""}
+                    alerting={isWarning && deviceStatus[device.id] === "ON"}
                     icon={<Icon size={22} strokeWidth={2} />}
                   />
                 );

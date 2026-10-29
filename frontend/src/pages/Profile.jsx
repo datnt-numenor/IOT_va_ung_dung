@@ -26,6 +26,7 @@ function Profile() {
     <MainLayout
       title="Profile"
       subtitle="Thông tin sinh viên và tài nguyên dự án"
+      contentClassName="fit-content"
     >
       <div className="profile-layout">
         <section className="panel profile-identity">

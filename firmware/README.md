@@ -12,6 +12,7 @@ Wi-Fi/MQTT credentials before uploading. Never commit real credentials.
 | Room-light simulation LED | GPIO23 |
 | Fan simulation LED | GPIO22 |
 | Air-conditioner simulation LED | GPIO21 |
+| Light warning LED (device 4) | GPIO19 |
 
 Connect each LED through a 220–330 ohm resistor and use a shared GND.
 

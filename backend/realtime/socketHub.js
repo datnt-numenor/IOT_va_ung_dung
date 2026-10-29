@@ -41,6 +41,10 @@ function emitDeviceUpdate(payload) {
   io?.emit("device:update", payload);
 }
 
+function emitAlertUpdate(payload) {
+  io?.emit("alert:update", payload);
+}
+
 function emitEsp32Status(payload) {
   io?.emit("esp32:status", payload);
 }
@@ -51,4 +55,5 @@ module.exports = {
   emitSensorUpdate,
   emitDeviceUpdate,
   emitEsp32Status,
+  emitAlertUpdate,
 };

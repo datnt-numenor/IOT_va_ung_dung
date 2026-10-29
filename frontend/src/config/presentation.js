@@ -4,6 +4,7 @@ import {
   Gauge,
   Lightbulb,
   Plug,
+  Siren,
   Snowflake,
   Sun,
   Thermometer,
@@ -19,7 +20,12 @@ const sensorStyles = {
 };
 const fallbackSensorStyle = { icon: Gauge, color: "#8b5cf6" };
 
-const deviceIcons = { light: Lightbulb, fan: Fan, air_conditioner: Snowflake };
+const deviceIcons = {
+  light: Lightbulb,
+  fan: Fan,
+  air_conditioner: Snowflake,
+  warning: Siren,
+};
 
 export function getSensorStyle(type) {
   return sensorStyles[type] || fallbackSensorStyle;

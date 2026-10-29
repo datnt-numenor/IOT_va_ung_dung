@@ -2,6 +2,7 @@ const cors = require("cors");
 const express = require("express");
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const alertRoutes = require("./routes/alertRoutes");
 const authenticate = require("./middleware/authenticate");
 const sensorRoutes = require("./routes/sensorRoutes");
 const deviceRoutes = require("./routes/deviceRoutes");
@@ -32,6 +33,7 @@ function createApp() {
   app.use("/api/v1/sensor-data", authenticate, sensorRoutes.dataRouter);
   app.use("/api/v1/devices", authenticate, deviceRoutes);
   app.use("/api/v1/action-history", authenticate, actionHistoryRoutes);
+  app.use("/api/v1/alerts", authenticate, alertRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

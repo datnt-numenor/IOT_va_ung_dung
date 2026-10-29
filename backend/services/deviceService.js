@@ -25,7 +25,10 @@ async function listDevices() {
     `SELECT id, code, name, type, current_status AS currentStatus, updated_at AS updatedAt
      FROM devices ORDER BY id`,
   );
-  return rows.map((device) => ({ ...device, updatedAt: toIsoUtc(device.updatedAt) }));
+  return rows.map((device) => ({
+    ...device,
+    updatedAt: toIsoUtc(device.updatedAt),
+  }));
 }
 
 // Trạng thái cuối được ESP32 xác nhận; dùng để khôi phục thiết bị khi một lệnh thất bại.
@@ -45,7 +48,9 @@ async function markFailed(actionId, deviceId) {
 
   try {
     await connection.beginTransaction();
-    await connection.execute("SELECT id FROM devices WHERE id = ? FOR UPDATE", [deviceId]);
+    await connection.execute("SELECT id FROM devices WHERE id = ? FOR UPDATE", [
+      deviceId,
+    ]);
     const [result] = await connection.execute(
       `UPDATE action_history
        SET status = 'FAILED', completed_at = UTC_TIMESTAMP(3)
@@ -72,19 +77,25 @@ async function markFailed(actionId, deviceId) {
 
   pendingTimeouts.delete(actionId);
   if (restored) {
-    socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: restored, status: "FAILED" });
+    socketHub.emitDeviceUpdate({
+      actionId,
+      deviceId,
+      currentStatus: restored,
+      status: "FAILED",
+    });
   }
 }
 
 // Bộ hẹn giờ timeout nằm trong bộ nhớ, nên mọi thứ còn LOADING sau khi khởi động lại sẽ bị kẹt
-// (công tắc bị khóa, mọi lệnh mới đều trả 409). Vì vậy chuyển chúng sang FAILED ngay lúc khởi động.
 async function failStaleActions() {
   const [actions] = await db.execute(
     "SELECT id, device_id AS deviceId FROM action_history WHERE status = 'LOADING'",
   );
   for (const action of actions) await markFailed(action.id, action.deviceId);
 
-  const [devices] = await db.execute("SELECT id FROM devices WHERE current_status = 'LOADING'");
+  const [devices] = await db.execute(
+    "SELECT id FROM devices WHERE current_status = 'LOADING'",
+  );
   for (const device of devices) {
     await db.execute(
       "UPDATE devices SET current_status = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?",
@@ -108,7 +119,8 @@ async function controlDevice({ deviceId, action, userId }) {
       [deviceId],
     );
     if (!device) throw new HttpError(404, `Device not found: ${deviceId}`);
-    if (device.currentStatus === "LOADING") throw new HttpError(409, "Device is busy");
+    if (device.currentStatus === "LOADING")
+      throw new HttpError(409, "Device is busy");
 
     const [history] = await connection.execute(
       `INSERT INTO action_history (user_id, device_id, action, status, requested_at)
@@ -126,28 +138,42 @@ async function controlDevice({ deviceId, action, userId }) {
     await connection.commit();
   } catch (error) {
     await connection.rollback();
-    if (error.code === "ER_NO_REFERENCED_ROW_2") throw new HttpError(400, `Unknown user: ${userId}`);
+    if (error.code === "ER_NO_REFERENCED_ROW_2")
+      throw new HttpError(400, `Unknown user: ${userId}`);
     throw error;
   } finally {
     connection.release();
   }
 
-  socketHub.emitDeviceUpdate({ actionId, deviceId, currentStatus: "LOADING", status: "LOADING" });
+  socketHub.emitDeviceUpdate({
+    actionId,
+    deviceId,
+    currentStatus: "LOADING",
+    status: "LOADING",
+  });
 
   // Đặt timeout trước khi publish: nếu broker rớt giữa chừng, publish có thể treo và thiết bị kẹt ở LOADING.
   const timeoutMs = Number(process.env.DEVICE_TIMEOUT_MS || 10000);
   const timeout = setTimeout(() => {
-    markFailed(actionId, deviceId)
-      .catch((error) => console.error("Device timeout update failed:", error));
+    markFailed(actionId, deviceId).catch((error) =>
+      console.error("Device timeout update failed:", error),
+    );
   }, timeoutMs);
   pendingTimeouts.set(actionId, timeout);
 
   try {
-    await mqttService.publish(mqttService.getTopics().command, { actionId, deviceId, action });
+    await mqttService.publish(mqttService.getTopics().command, {
+      actionId,
+      deviceId,
+      action,
+    });
   } catch (error) {
     clearTimeout(timeout);
     await markFailed(actionId, deviceId);
-    throw new HttpError(503, `Unable to publish device command: ${error.message}`);
+    throw new HttpError(
+      503,
+      `Unable to publish device command: ${error.message}`,
+    );
   }
 
   return { actionId, deviceId, action, status: "LOADING" };
@@ -186,8 +212,13 @@ async function handleDeviceStatus(payload) {
       [actionId, deviceId],
     );
     if (!action) throw new Error(`Pending action not found: ${actionId}`);
-    if (action.status !== "LOADING" && (action.status !== "FAILED" || status === "FAILED")) {
-      throw new Error(`Action ${actionId} already finished with status ${action.status}`);
+    if (
+      action.status !== "LOADING" &&
+      (action.status !== "FAILED" || status === "FAILED")
+    ) {
+      throw new Error(
+        `Action ${actionId} already finished with status ${action.status}`,
+      );
     }
 
     await connection.execute(
@@ -202,7 +233,10 @@ async function handleDeviceStatus(payload) {
     if (newer) {
       currentStatus = null;
     } else {
-      currentStatus = status === "FAILED" ? await lastConfirmedStatus(connection, deviceId) : status;
+      currentStatus =
+        status === "FAILED"
+          ? await lastConfirmedStatus(connection, deviceId)
+          : status;
       await connection.execute(
         "UPDATE devices SET current_status = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?",
         [currentStatus, deviceId],
@@ -232,8 +266,10 @@ const MAX_SYNC_DEVICES = 20;
 async function handleSyncRequest(payload) {
   const deviceIds = payload?.deviceIds;
   if (
-    !Array.isArray(deviceIds) || !deviceIds.length || deviceIds.length > MAX_SYNC_DEVICES
-    || !deviceIds.every((id) => Number.isInteger(id) && id > 0)
+    !Array.isArray(deviceIds) ||
+    !deviceIds.length ||
+    deviceIds.length > MAX_SYNC_DEVICES ||
+    !deviceIds.every((id) => Number.isInteger(id) && id > 0)
   ) {
     throw new Error("Sync request requires 1-20 positive integer deviceIds");
   }
@@ -242,17 +278,27 @@ async function handleSyncRequest(payload) {
     "SELECT id, current_status AS currentStatus FROM devices WHERE id IN (?)",
     [deviceIds],
   );
-  await Promise.all(devices.map(async (device) => {
-    // LOADING/FAILED không phải trạng thái vật lý; gửi lại trạng thái cuối mà ESP32 đã xác nhận.
-    const action = ["ON", "OFF"].includes(device.currentStatus)
-      ? device.currentStatus
-      : await lastConfirmedStatus(db, device.id);
-    await mqttService.publish(mqttService.getTopics().command, {
-      actionId: 0, deviceId: device.id, action, source: "SYNC",
-    });
-  }));
+  await Promise.all(
+    devices.map(async (device) => {
+      // LOADING/FAILED không phải trạng thái vật lý; gửi lại trạng thái cuối mà ESP32 đã xác nhận.
+      const action = ["ON", "OFF"].includes(device.currentStatus)
+        ? device.currentStatus
+        : await lastConfirmedStatus(db, device.id);
+      await mqttService.publish(mqttService.getTopics().command, {
+        actionId: 0,
+        deviceId: device.id,
+        action,
+        source: "SYNC",
+      });
+    }),
+  );
 }
 
 module.exports = {
-  listDevices, getDeviceStatus, controlDevice, handleDeviceStatus, handleSyncRequest, failStaleActions,
+  listDevices,
+  getDeviceStatus,
+  controlDevice,
+  handleDeviceStatus,
+  handleSyncRequest,
+  failStaleActions,
 };

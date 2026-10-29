@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "../api/client";
+import { useFitRows } from "../hooks/useFitRows";
 import MainLayout from "../components/MainLayout";
 import CopyableTime from "../components/CopyableTime";
 
@@ -22,6 +23,17 @@ function DataSensor() {
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  // Số dòng thực tế mỗi trang = số dòng đã chọn, nhưng không quá số dòng vừa khít màn hình (để không phải cuộn).
+  const tableRef = useRef(null);
+  const fitRows = useFitRows(tableRef);
+  const pageSize = fitRows === null ? null : Math.min(rowsPerPage, fitRows);
+
+  // Đổi số dòng mỗi trang (hoặc cửa sổ đổi kích thước) thì quay về trang đầu để khỏi vượt quá số trang.
+  const [lastPageSize, setLastPageSize] = useState(pageSize);
+  if (pageSize !== lastPageSize) {
+    setLastPageSize(pageSize);
+    setCurrentPage(1);
+  }
   const [data, setData] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -34,12 +46,13 @@ function DataSensor() {
   }, []);
 
   useEffect(() => {
+    if (pageSize === null) return undefined;
     const controller = new AbortController();
     const query = new URLSearchParams({
       field: appliedSearch.field,
       keyword: appliedSearch.keyword,
       page: String(currentPage),
-      size: String(rowsPerPage),
+      size: String(pageSize),
       sort: `${sortFields[sortKey]},${sortDirection}`,
     });
     apiRequest(`/sensor-data?${query}`, { signal: controller.signal })
@@ -53,7 +66,7 @@ function DataSensor() {
         if (requestError.name !== "AbortError") setError(requestError.message);
       });
     return () => controller.abort();
-  }, [appliedSearch, currentPage, rowsPerPage, sortKey, sortDirection]);
+  }, [appliedSearch, currentPage, pageSize, sortKey, sortDirection]);
 
   function handleSort(key) {
     if (sortKey === key)
@@ -83,8 +96,8 @@ function DataSensor() {
   const sensorNames = Object.fromEntries(
     sensors.map((sensor) => [sensor.type, sensor.name]),
   );
-  const startIndex = totalElements ? (currentPage - 1) * rowsPerPage + 1 : 0;
-  const endIndex = Math.min(currentPage * rowsPerPage, totalElements);
+  const startIndex = totalElements ? (currentPage - 1) * (pageSize ?? rowsPerPage) + 1 : 0;
+  const endIndex = Math.min(currentPage * (pageSize ?? rowsPerPage), totalElements);
   const sortMark = (key) =>
     sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : " ↕";
 
@@ -92,6 +105,7 @@ function DataSensor() {
     <MainLayout
       title="Data Sensor"
       subtitle="Tra cứu lịch sử giá trị theo từng loại cảm biến"
+      contentClassName="fit-content"
     >
       <div className="records-page">
         <section className="panel filter-panel sensor-filter-panel">
@@ -138,7 +152,7 @@ function DataSensor() {
               {error}
             </div>
           ) : null}
-          <div className="table-scroll">
+          <div className="table-scroll" ref={tableRef}>
             <table className="data-table sensor-table">
               <thead>
                 <tr>

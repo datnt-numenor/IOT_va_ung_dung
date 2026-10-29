@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
+  ChartColumn,
   LayoutDashboard,
   Database,
   History,
@@ -83,6 +84,16 @@ function Sidebar() {
           >
             <History size={20} />
             <span>Action History</span>
+          </NavLink>
+
+          <NavLink
+            to="/statistics"
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
+          >
+            <ChartColumn size={20} />
+            <span>Thống kê</span>
           </NavLink>
 
           <NavLink

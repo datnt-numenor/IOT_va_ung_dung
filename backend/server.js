@@ -4,6 +4,7 @@ const http = require("http");
 const db = require("./config/db");
 const createApp = require("./app");
 const authService = require("./services/authService");
+const alertService = require("./services/alertService");
 const sensorService = require("./services/sensorService");
 const deviceService = require("./services/deviceService");
 const mqttService = require("./services/mqttService");
@@ -33,6 +34,8 @@ async function testDatabaseConnection() {
 
     const failed = await deviceService.failStaleActions();
     if (failed) console.log(`Marked ${failed} stale LOADING action(s) as FAILED`);
+
+    await alertService.init();
   } catch (error) {
     console.error("MySQL connection failed:", error.message);
   }

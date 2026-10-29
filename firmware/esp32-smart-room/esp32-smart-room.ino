@@ -12,13 +12,20 @@
 #define DHT_TYPE DHT11
 #define LIGHT_PIN 32
 
-// Ba LED mô phỏng ba thiết bị: 1 = đèn phòng, 2 = quạt, 3 = điều hòa.
-// Thứ tự trong mảng chính là deviceId - 1.
-const uint8_t LED_PINS[] = {23, 22, 21};
-const int LED_COUNT = 3;
+// Bốn LED: 1 = đèn phòng, 2 = quạt, 3 = điều hòa, 4 = LED cảnh báo ánh sáng.
+// Thứ tự trong mảng chính là deviceId - 1. LED cảnh báo nối vào GPIO19 (qua điện trở 220–330 ohm).
+const uint8_t LED_PINS[] = {23, 22, 21, 19};
+const int LED_COUNT = 4;
 
 // Đánh dấu thiết bị nào đã được backend khôi phục trạng thái sau khi kết nối MQTT
-bool syncReceived[LED_COUNT] = {false, false, false};
+bool syncReceived[LED_COUNT] = {false, false, false, false};
+
+// LED cảnh báo không sáng đứng yên: khi backend gửi ON thì nhấp nháy, OFF thì tắt.
+const int WARNING_DEVICE_ID = 4;
+const unsigned long BLINK_INTERVAL = 250;  // đổi trạng thái mỗi 250 ms
+bool warningBlinking = false;
+bool warningLedOn = false;
+unsigned long lastBlinkToggle = 0;
 
 // ======================================================
 // 2. WI-FI VÀ MQTT
@@ -93,11 +100,29 @@ bool isSyncCompleted() {
 void setLedState(int deviceId, bool state) {
   int ledPin = getLedPin(deviceId);
   if (ledPin == -1) return;
-  digitalWrite(ledPin, state ? HIGH : LOW);
+  if (deviceId == WARNING_DEVICE_ID) {
+    // LED cảnh báo do updateWarningBlink() điều khiển; tắt thì dập LED ngay.
+    warningBlinking = state;
+    if (!state) {
+      warningLedOn = false;
+      digitalWrite(ledPin, LOW);
+    }
+  } else {
+    digitalWrite(ledPin, state ? HIGH : LOW);
+  }
   Serial.print("LED ");
   Serial.print(deviceId);
   Serial.print(": ");
   Serial.println(state ? "ON" : "OFF");
+}
+
+// Nhấp nháy LED cảnh báo không chặn (dùng millis, không dùng delay). Gọi liên tục trong loop().
+void updateWarningBlink() {
+  if (!warningBlinking) return;
+  if (millis() - lastBlinkToggle < BLINK_INTERVAL) return;
+  lastBlinkToggle = millis();
+  warningLedOn = !warningLedOn;
+  digitalWrite(getLedPin(WARNING_DEVICE_ID), warningLedOn ? HIGH : LOW);
 }
 
 // ======================================================
@@ -312,6 +337,7 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) connectWiFi();
   if (!mqttClient.connected()) connectMQTT();
   mqttClient.loop();
+  updateWarningBlink();
 
   if (!isSyncCompleted() && millis() - lastSyncRequest >= SYNC_RETRY_INTERVAL) {
     requestStateSync();

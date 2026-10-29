@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DataSensor from "./pages/DataSensor";
 import ActionHistory from "./pages/ActionHistory";
+import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/useAuth";
@@ -42,6 +43,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ActionHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <ProtectedRoute>
+              <Statistics />
             </ProtectedRoute>
           }
         />

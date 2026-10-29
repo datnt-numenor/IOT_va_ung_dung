@@ -9,6 +9,7 @@
     "test": "node --test",
     "db:init": "node scripts/runSql.js schema",
     "db:seed": "node scripts/runSql.js seed",
+    "db:add-alert-feature": "node scripts/addAlertFeature.js",
     "db:add-user-role": "node scripts/addUserRole.js",
     "user:create": "node scripts/createUser.js",
     "db:migrate-legacy": "node scripts/migrateLegacy.js",

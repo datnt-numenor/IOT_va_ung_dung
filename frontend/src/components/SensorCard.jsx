@@ -1,10 +1,10 @@
 import { formatChartTime } from "../utils/dateTime";
 
-function SensorCard({ title, value, unit, icon, type, isLive, lastSeen }) {
+function SensorCard({ title, value, unit, icon, type, isLive, lastSeen, alerting = false }) {
   const updatedAt = lastSeen ? formatChartTime(lastSeen) : "--:--:--";
 
   return (
-    <article className={`sensor-card ${type}`}>
+    <article className={`sensor-card ${type} ${alerting ? "alerting" : ""}`.trim()}>
       <div className="sensor-card-header">
         <div className={`sensor-icon ${type}`}>{icon}</div>
         <div className="sensor-card-title">

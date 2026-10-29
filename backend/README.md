@@ -64,6 +64,24 @@ another account with:
 $env:NEW_USER_PASSWORD = "<password>"; npm.cmd run user:create -- <username> "<Full name>" viewer
 ```
 
+## Light alert
+
+When the light value is greater than the threshold X (setting
+`light_alert_threshold`, default 500, same scale as the displayed light value),
+the backend sends `ON` to the warning LED (device 4, `WARN_01`); the firmware
+blinks it. The alert ends, with an `OFF` command, once the value drops below 95%
+of X. Every start and stop is a normal `action_history` row made by the
+`system` account, so it shows up in the Action History filter (device "Đèn cảnh
+báo") and the daily count is derived from the `ON` rows.
+
+- `GET /api/v1/alerts/status` returns `{ active, since, value, threshold, deviceId }`
+- `GET /api/v1/alerts/stats?days=7` returns the number of alerts per day (Vietnam time)
+- `PUT /api/v1/alerts/threshold` with `{ "threshold": 900 }` (admin only)
+
+Socket.IO also emits `alert:update` with the same payload as `/alerts/status`.
+Existing databases add the settings table, device 4 and the `system` account
+once with `npm.cmd run db:add-alert-feature`.
+
 ## Socket.IO
 
 Clients connect with `socket.io-client` to `http://<host>:3000` (the browser
